@@ -1,9 +1,9 @@
 # visualiser-bionic-
-COMP4050 Team Bionic (Visualisers) project
+COMP4050 Team Bionic (Visualisers) Project
 
 # roles
 
-Peter : Product Owner
-Vaibhav : repository 
-Sunny : Project Manager 
-Subham : Scrum Master
+- Peter : Product Owner
+- Vaibhav : Repository 
+- Sonny : Project Manager 
+- Subham : Scrum Master
