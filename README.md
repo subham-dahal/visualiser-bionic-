@@ -9,6 +9,9 @@ COMP4050 Team Bionic (Visualisers) Project
 - Subham : Scrum Master
 
 
+https://nodejs.org/en/download/current
+using vs26.7.0
+
 For Mac
 
 # Download and install nvm:
