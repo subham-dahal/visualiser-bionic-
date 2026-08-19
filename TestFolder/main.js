@@ -1,10 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-//width = ();
-//height = ();
-//depth = ();
-//Sizing done in MM
+const width = 2.001, depth = 2.001, height = 2.001;
 
 //BoxSize = (width, height, depth);
 const scene = new THREE.Scene();
@@ -15,9 +12,10 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 
-const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+const geometry = new THREE.BoxGeometry( width, height, depth );
 const material = new THREE.MeshBasicMaterial({ color: 0x87ceeb, transparent: true, opacity: 0.3 });
 const cube = new THREE.Mesh( geometry, material );
+cube.position.set(width/2, height/2, depth/2);
 scene.add( cube );
 
 const childGeometry = new THREE.BoxGeometry( 1, 0.4, 0.4 );
@@ -26,11 +24,18 @@ const childBox = new THREE.Mesh( childGeometry, childMaterial );
 childBox.position.set(0, -.3, -0.3 ); 
 cube.add( childBox );
 
-camera.position.z = 5;
+const axesHelper = new THREE.AxesHelper( 10 );
+scene.add( axesHelper );
+
+camera.position.z = depth*2;
+camera.position.y = height*2;
+camera.position.x = width*2;
+
 const controls = new OrbitControls( camera, renderer.domElement );
 
 function animate() {
 requestAnimationFrame(animate);
+controls.target.set( width / 2, height / 2, depth / 2 );
 
     controls.update(); 
 
