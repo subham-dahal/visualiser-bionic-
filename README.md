@@ -49,3 +49,6 @@ npm -v # Should print "11.19.0".
 
 npx vite to run local host
 
+
+
+Boxes xyz 000 is positioned to bottom left corner of the box.
