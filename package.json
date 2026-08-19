@@ -1,0 +1,27 @@
+{
+  "name": "visualiser-bionic-",
+  "version": "1.0.0",
+  "description": "COMP4050 Team Bionic (Visualisers) Project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subham-dahal/visualiser-bionic-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/subham-dahal/visualiser-bionic-/issues"
+  },
+  "homepage": "https://github.com/subham-dahal/visualiser-bionic-#readme",
+  "dependencies": {
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "vite": "^8.2.1"
+  }
+}
