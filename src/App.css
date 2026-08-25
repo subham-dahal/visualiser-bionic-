@@ -1,0 +1,21 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.app-header {
+  flex: 0 0 auto;
+  text-align: center;
+  padding: 1rem;
+}
+
+.canvas-region {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.detail-region {
+  flex: 0 0 auto;
+}
