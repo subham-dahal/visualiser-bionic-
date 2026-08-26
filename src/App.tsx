@@ -117,6 +117,13 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
 
   const box = result?.boxes?.[boxIndex]
 
+  const stepSelection = (delta: number) => {
+    const count = box?.items.length ?? 0
+    if (count === 0) return
+    const current = selected ?? -1
+    selectItemRef.current((current + delta + count) % count)
+  }
+
   useEffect(() => {
     const mount = mountRef.current
     if (!mount || !box) return
@@ -297,6 +304,17 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
         </main>
         <aside className="detail-region">
           <h2>Items in {box?.boxId}</h2>
+          <div className="item-nav">
+            <button type="button" className="item-nav__btn" onClick={() => stepSelection(-1)}>
+              ‹ Prev
+            </button>
+            <span className="item-nav__pos">
+              {selected !== null ? selected + 1 : '–'} / {box?.items.length ?? 0}
+            </span>
+            <button type="button" className="item-nav__btn" onClick={() => stepSelection(1)}>
+              Next ›
+            </button>
+          </div>
           <ul className="item-list">
             {box?.items.map((item, i) => (
               <li key={`${item.itemId}-${i}`}>

@@ -126,6 +126,37 @@
   letter-spacing: 0.04em;
 }
 
+.item-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.6rem;
+}
+
+.item-nav__btn {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.7rem;
+  border-radius: 0.5rem;
+  border: 1px solid #1d212a;
+  background: #12151c;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.item-nav__btn:hover {
+  border-color: #2a2f3a;
+}
+
+.item-nav__pos {
+  flex: 1 1 auto;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #8b93a3;
+}
+
 .item-list {
   list-style: none;
   margin: 0;
