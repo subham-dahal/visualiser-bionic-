@@ -6,14 +6,14 @@ import './App.css'
 type Vec3 = { x: number; y: number; z: number }
 type Dims = { w: number; h: number; d: number }
 
-type PackedItem = {
+export type PackedItem = {
   itemId: string
   dimensions: Dims
   position: Vec3
   rotation?: number
 }
 
-type PackedBox = {
+export type PackedBox = {
   boxId: string
   dimensions: Dims
   items: PackedItem[]
