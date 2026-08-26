@@ -78,6 +78,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
   const mountRef = useRef<HTMLDivElement>(null)
   const selectItemRef = useRef<(index: number | null) => void>(() => {})
   const resetViewRef = useRef<() => void>(() => {})
+  const zoomCameraRef = useRef<(factor: number) => void>(() => {})
   const [selected, setSelected] = useState<number | null>(null)
   const [boxIndex, setBoxIndex] = useState(0)
   const [result, setResult] = useState<PackingResult | null>(resultProp ?? null)
@@ -216,6 +217,50 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
     }
     resetViewRef.current = resetView
 
+    const offset = new THREE.Vector3()
+    const spherical = new THREE.Spherical()
+    const ANGLE_STEP = 0.12
+
+    const rotateCamera = (deltaAzimuth: number, deltaPolar: number) => {
+      offset.copy(camera.position).sub(controls.target)
+      spherical.setFromVector3(offset)
+      spherical.theta += deltaAzimuth
+      spherical.phi = THREE.MathUtils.clamp(spherical.phi + deltaPolar, 0.05, Math.PI - 0.05)
+      offset.setFromSpherical(spherical)
+      camera.position.copy(controls.target).add(offset)
+      controls.update()
+    }
+
+    const zoomCamera = (factor: number) => {
+      offset.copy(camera.position).sub(controls.target)
+      const radius = THREE.MathUtils.clamp(offset.length() * factor, controls.minDistance, controls.maxDistance)
+      offset.setLength(radius)
+      camera.position.copy(controls.target).add(offset)
+      controls.update()
+    }
+    zoomCameraRef.current = zoomCamera
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      switch (event.key) {
+        case 'ArrowLeft':
+          rotateCamera(-ANGLE_STEP, 0)
+          break
+        case 'ArrowRight':
+          rotateCamera(ANGLE_STEP, 0)
+          break
+        case 'ArrowUp':
+          rotateCamera(0, -ANGLE_STEP)
+          break
+        case 'ArrowDown':
+          rotateCamera(0, ANGLE_STEP)
+          break
+        default:
+          return
+      }
+      event.preventDefault()
+    }
+    window.addEventListener('keydown', onKeyDown)
+
     const raycaster = new THREE.Raycaster()
     const pointer = new THREE.Vector2()
     const onPointerDown = (event: PointerEvent) => {
@@ -247,6 +292,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
     return () => {
       cancelAnimationFrame(animationId)
       resizeObserver.disconnect()
+      window.removeEventListener('keydown', onKeyDown)
       renderer.domElement.removeEventListener('pointerdown', onPointerDown)
       controls.dispose()
       renderer.domElement.remove()
@@ -314,10 +360,18 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
       <div className="app-body">
         <main className="canvas-region">
           <div ref={mountRef} className="canvas-mount" />
-          <button type="button" className="reset-view-btn" onClick={() => resetViewRef.current()}>
-            Reset view
-          </button>
-          <p className="canvas-hint">Drag to rotate · scroll to zoom · tap an item to inspect</p>
+          <div className="camera-controls">
+            <button type="button" className="camera-btn" aria-label="Zoom in" onClick={() => zoomCameraRef.current(0.8)}>
+              +
+            </button>
+            <button type="button" className="camera-btn" aria-label="Zoom out" onClick={() => zoomCameraRef.current(1.25)}>
+              −
+            </button>
+            <button type="button" className="camera-btn camera-btn--reset" onClick={() => resetViewRef.current()}>
+              Reset view
+            </button>
+          </div>
+          <p className="canvas-hint">Drag or arrow keys to rotate · scroll or +/− to zoom · tap an item to inspect</p>
         </main>
         <aside className="detail-region">
           <h2>Items in {box?.boxId}</h2>
