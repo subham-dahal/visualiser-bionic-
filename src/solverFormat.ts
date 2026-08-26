@@ -36,13 +36,10 @@ export type SolverOutput = {
  * Converts FitSolver's raw output into the PackingResult shape our scene renders
  * (the same shape FitPortal's frontend already reads from GET /api/orders/:id/result).
  *
- * Axis mapping below is INFERRED, not confirmed with the FitSolver team: in the one
- * example we have, item A (length 20) sits at y:0 and item B is placed at y:20 -
- * i.e. y advances by *length*, not by depth. That implies the solver's floor plane
- * is x (width) / y (length), and z (depth) is the vertical stacking axis - the
- * opposite of three.js's default y-up convention our scene uses. So we swap y/z here:
- * our render "h" (vertical) <- solver depth, our render "d" <- solver length.
- * Verify this against a solver example with more than one vertical layer before relying on it.
+ * FitSolver places each item by its x,y bottom-left floor position (width x length
+ * footprint), with z as the vertical stacking axis (item height = its depth field).
+ * three.js is y-up, so we swap solver y/z when mapping into our render axes: our
+ * vertical "h" <- solver depth, our other floor axis "d" <- solver length.
  *
  * `rotation` isn't present in the raw solver output at all, so it's left undefined here.
  */

@@ -2,7 +2,7 @@
 
 **Week 4 — 19 August 2026**
 
-**Present:** Peter (Product Owner/Developer), Subham (Scrum Maste/ Developer), Vaibhav (Repository Manager/Developer), Sonny (Project Manager/ Developer)
+**Present:** Peter (Product Owner/Developer), Subham (Scrum Master/ Developer), Vaibhav (Repository Manager/Developer), Sonny (Project Manager/ Developer)
 
 ---
 
