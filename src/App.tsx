@@ -84,6 +84,8 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
   const [result, setResult] = useState<PackingResult | null>(resultProp ?? null)
   const [loading, setLoading] = useState(!resultProp && !!orderId)
   const [error, setError] = useState('')
+  
+
 
   useEffect(() => {
     if (resultProp) {
@@ -144,6 +146,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setSize(mount.clientWidth, mount.clientHeight)
     mount.appendChild(renderer.domElement)
+    scene.add(new THREE.AxesHelper(10))
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.7))
     const keyLight = new THREE.DirectionalLight(0xffffff, 1)
@@ -210,33 +213,40 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
     camera.lookAt(controls.target)
     controls.update()
 
+    const offset = new THREE.Vector3()
+    const spherical = new THREE.Spherical()
+    const targetSpherical = new THREE.Spherical()
+    const ANGLE_STEP = 0.12
+    const LERP_ALPHA = 0.1
+
+    // Initialise both sphericals from the current camera position
+    offset.copy(camera.position).sub(controls.target)
+    spherical.setFromVector3(offset)
+    targetSpherical.copy(spherical)
+
     const resetView = () => {
       camera.position.copy(initialCameraPos)
       controls.target.copy(initialTarget)
+      offset.copy(initialCameraPos).sub(initialTarget)
+      spherical.setFromVector3(offset)
+      targetSpherical.copy(spherical)
       controls.update()
     }
     resetViewRef.current = resetView
 
-    const offset = new THREE.Vector3()
-    const spherical = new THREE.Spherical()
-    const ANGLE_STEP = 0.12
-
     const rotateCamera = (deltaAzimuth: number, deltaPolar: number) => {
       offset.copy(camera.position).sub(controls.target)
       spherical.setFromVector3(offset)
-      spherical.theta += deltaAzimuth
-      spherical.phi = THREE.MathUtils.clamp(spherical.phi + deltaPolar, 0.05, Math.PI - 0.05)
-      offset.setFromSpherical(spherical)
-      camera.position.copy(controls.target).add(offset)
-      controls.update()
+      targetSpherical.copy(spherical)
+      targetSpherical.theta += deltaAzimuth
+      targetSpherical.phi = THREE.MathUtils.clamp(targetSpherical.phi + deltaPolar, 0.05, Math.PI - 0.05)
     }
 
     const zoomCamera = (factor: number) => {
       offset.copy(camera.position).sub(controls.target)
-      const radius = THREE.MathUtils.clamp(offset.length() * factor, controls.minDistance, controls.maxDistance)
-      offset.setLength(radius)
-      camera.position.copy(controls.target).add(offset)
-      controls.update()
+      spherical.setFromVector3(offset)
+      targetSpherical.copy(spherical)
+      targetSpherical.radius = THREE.MathUtils.clamp(spherical.radius * factor, controls.minDistance, controls.maxDistance)
     }
     zoomCameraRef.current = zoomCamera
 
@@ -284,6 +294,24 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
     let animationId: number
     const animate = () => {
       animationId = requestAnimationFrame(animate)
+
+      const thetaDiff = targetSpherical.theta - spherical.theta
+      const phiDiff = targetSpherical.phi - spherical.phi
+      const radiusDiff = targetSpherical.radius - spherical.radius
+
+      if (Math.abs(thetaDiff) > 0.0001 || Math.abs(phiDiff) > 0.0001 || Math.abs(radiusDiff) > 0.0001) {
+        spherical.theta += thetaDiff * LERP_ALPHA
+        spherical.phi += phiDiff * LERP_ALPHA
+        spherical.radius += radiusDiff * LERP_ALPHA
+        offset.setFromSpherical(spherical)
+        camera.position.copy(controls.target).add(offset)
+      } else {
+        // Sync our state from camera so OrbitControls mouse drag works freely
+        offset.copy(camera.position).sub(controls.target)
+        spherical.setFromVector3(offset)
+        targetSpherical.copy(spherical)
+      }
+
       controls.update()
       renderer.render(scene, camera)
     }
