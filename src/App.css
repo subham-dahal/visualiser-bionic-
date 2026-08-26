@@ -95,6 +95,24 @@
   height: 100%;
 }
 
+.reset-view-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid #1d212a;
+  background: rgba(18, 21, 28, 0.85);
+  color: inherit;
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.reset-view-btn:hover {
+  border-color: #2a2f3a;
+}
+
 .canvas-hint {
   position: absolute;
   left: 50%;

@@ -77,6 +77,7 @@ async function fetchResult(path: string) {
 function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
   const mountRef = useRef<HTMLDivElement>(null)
   const selectItemRef = useRef<(index: number | null) => void>(() => {})
+  const resetViewRef = useRef<() => void>(() => {})
   const [selected, setSelected] = useState<number | null>(null)
   const [boxIndex, setBoxIndex] = useState(0)
   const [result, setResult] = useState<PackingResult | null>(resultProp ?? null)
@@ -195,12 +196,25 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
     }
     selectItemRef.current = selectItem
 
-    camera.position.set(BOX.w * 1.8, BOX.h * 1.6, BOX.d * 2.2)
+    const initialCameraPos = new THREE.Vector3(BOX.w * 1.8, BOX.h * 1.6, BOX.d * 2.2)
+    const initialTarget = new THREE.Vector3(BOX.w / 2, BOX.h / 2, BOX.d / 2)
+    camera.position.copy(initialCameraPos)
+
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
-    controls.target.set(BOX.w / 2, BOX.h / 2, BOX.d / 2)
+    controls.target.copy(initialTarget)
+    const diagonal = Math.hypot(BOX.w, BOX.h, BOX.d)
+    controls.minDistance = diagonal * 0.5
+    controls.maxDistance = diagonal * 3
     camera.lookAt(controls.target)
     controls.update()
+
+    const resetView = () => {
+      camera.position.copy(initialCameraPos)
+      controls.target.copy(initialTarget)
+      controls.update()
+    }
+    resetViewRef.current = resetView
 
     const raycaster = new THREE.Raycaster()
     const pointer = new THREE.Vector2()
@@ -300,6 +314,9 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
       <div className="app-body">
         <main className="canvas-region">
           <div ref={mountRef} className="canvas-mount" />
+          <button type="button" className="reset-view-btn" onClick={() => resetViewRef.current()}>
+            Reset view
+          </button>
           <p className="canvas-hint">Drag to rotate · scroll to zoom · tap an item to inspect</p>
         </main>
         <aside className="detail-region">
