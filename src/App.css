@@ -1,46 +1,48 @@
 .app {
   height: 100dvh;
   display: grid;
-  gird-template-areas:
-    "header"
-    "canvas"
-    "detail";
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr;
 }
 
-.app-header { grid-area: header;
-  align-text: center;
+.app-header {
+  text-align: center;
 }
 
+.app-body {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 1fr auto;
+}
 
 .canvas-region {
-  grid-area: canvas;
+  position: relative;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
 }
 
-.detail-region {
-  grid-area: detail;
-  max-height: 40dvh;
-  overflow: auto;
-  border-top: 1px solid #ddd;
+.canvas-mount {
+  width: 100%;
+  height: 100%;
 }
 
-/* Wide screens: 70 / 30 side by side */
+.detail-region {
+  min-height: 0;
+  max-height: 40dvh;
+  overflow-y: auto;
+  text-align: center;
+}
+
 @media (min-width: 768px) {
-  .app {
-    grid-template-areas:
-      "header header"
-      "canvas detail";
+  .app-body {
     grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
-    grid-template-rows: auto 1fr;
+    grid-template-rows: 1fr;
   }
 
   .detail-region {
     max-height: none;
-    border-top: none;
-    border-left: 1px solid #ddd;
+    border-top: 10px solid #000;
+    border-left: 10px solid #ddd;
   }
 }
 
