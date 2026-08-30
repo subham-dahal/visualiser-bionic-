@@ -53,7 +53,13 @@ function App() {
 
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.target.set(BoxSize.w / 2, BoxSize.h / 2, BoxSize.d / 2)
-    camera.lookAt(BoxSize.w / 2, BoxSize.h / 2, BoxSize.d / 2)
+
+    const halfDiagonal = 0.5 * Math.hypot(BoxSize.w, BoxSize.h, BoxSize.d)
+    controls.minDistance = halfDiagonal * 2   //stop camera entering the box
+    controls.maxDistance = halfDiagonal * 5   //stop infinite zoom out
+
+
+
     controls.update()
 
     const onResize = () => {

@@ -1,21 +1,47 @@
 .app {
-  display: flex;
-  flex-direction: column;
   height: 100dvh;
+  display: grid;
+  gird-template-areas:
+    "header"
+    "canvas"
+    "detail";
+  grid-template-rows: auto 1fr auto;
 }
 
-.app-header {
-  flex: 0 0 auto;
-  text-align: center;
-  padding: 1rem;
+.app-header { grid-area: header;
+  align-text: center;
 }
+
 
 .canvas-region {
-  flex: 1;
+  grid-area: canvas;
+  min-width: 0;
   min-height: 0;
-  position: relative;
+  overflow: hidden;
 }
 
 .detail-region {
-  flex: 0 0 auto;
+  grid-area: detail;
+  max-height: 40dvh;
+  overflow: auto;
+  border-top: 1px solid #ddd;
 }
+
+/* Wide screens: 70 / 30 side by side */
+@media (min-width: 768px) {
+  .app {
+    grid-template-areas:
+      "header header"
+      "canvas detail";
+    grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
+    grid-template-rows: auto 1fr;
+  }
+
+  .detail-region {
+    max-height: none;
+    border-top: none;
+    border-left: 1px solid #ddd;
+  }
+}
+
+canvas { display: block; }
