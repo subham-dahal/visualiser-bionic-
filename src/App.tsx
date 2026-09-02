@@ -146,7 +146,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setSize(mount.clientWidth, mount.clientHeight)
     mount.appendChild(renderer.domElement)
-    scene.add(new THREE.AxesHelper(10))
+    //scene.add(new THREE.AxesHelper(10))
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.7))
     const keyLight = new THREE.DirectionalLight(0xffffff, 1)
@@ -155,7 +155,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
 
     const grid = new THREE.GridHelper(Math.max(BOX.w, BOX.d) * 3, 12, 0x2a2f3a, 0x1a1e26)
     grid.position.y = -0.001
-    scene.add(grid)
+   // scene.add(grid)
 
     const container = new THREE.Mesh(
       new THREE.BoxGeometry(BOX.w, BOX.h, BOX.d),
