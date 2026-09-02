@@ -193,8 +193,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
         const material = mesh.material as THREE.MeshStandardMaterial
         const isSelected = i === index
         material.emissive.setHex(isSelected ? 0xffffff : 0x000000)
-        material.emissiveIntensity = isSelected ? 0.5 : 0
-        mesh.scale.setScalar(isSelected ? 1.08 : 1)
+        material.emissiveIntensity = isSelected ? 0.7 : 0
       })
       setSelected(index)
     }
