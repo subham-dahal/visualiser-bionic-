@@ -1,0 +1,29 @@
+{
+  "status": "success",
+  "source": "mock",
+  "unpacked": [],
+  "boxes": [
+    {
+      "boxId": "Crate-1",
+      "dimensions": { "w": 600, "h": 300, "d": 400 },
+      "items": [
+        { "itemId": "BLENDER", "dimensions": { "w": 180, "h": 180, "d": 380 }, "position": { "x": 0, "y": 0, "z": 0 } },
+        { "itemId": "SHOEBOX", "dimensions": { "w": 340, "h": 120, "d": 210 }, "position": { "x": 180, "y": 0, "z": 0 } },
+        { "itemId": "KETTLE", "dimensions": { "w": 200, "h": 220, "d": 160 }, "position": { "x": 180, "y": 0, "z": 210 } },
+        { "itemId": "HEADPHONES", "dimensions": { "w": 190, "h": 80, "d": 170 }, "position": { "x": 380, "y": 0, "z": 210 } },
+        { "itemId": "BOOK", "dimensions": { "w": 145, "h": 35, "d": 205 }, "position": { "x": 180, "y": 120, "z": 0 } },
+        { "itemId": "MUG", "dimensions": { "w": 95, "h": 95, "d": 115 }, "position": { "x": 380, "y": 80, "z": 210 } },
+        { "itemId": "TABLET", "dimensions": { "w": 260, "h": 15, "d": 180 }, "position": { "x": 325, "y": 120, "z": 0 } },
+        { "itemId": "GAMEBOX", "dimensions": { "w": 170, "h": 30, "d": 135 }, "position": { "x": 325, "y": 135, "z": 0 } }
+      ]
+    },
+    {
+      "boxId": "Crate-2",
+      "dimensions": { "w": 600, "h": 300, "d": 400 },
+      "items": [
+        { "itemId": "MONITOR", "dimensions": { "w": 550, "h": 60, "d": 350 }, "position": { "x": 0, "y": 0, "z": 0 } },
+        { "itemId": "LAPTOP", "dimensions": { "w": 340, "h": 25, "d": 245 }, "position": { "x": 0, "y": 60, "z": 0 } }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "results": [
+    {
+      "box_reference": "BOX-001",
+      "placements": [
+        { "item_code": "ITEM-A", "item_reference": "item-1", "x": 0, "y": 0, "z": 0, "width": 10, "length": 20, "depth": 5 },
+        { "item_code": "ITEM-B", "item_reference": "item-2", "x": 0, "y": 20, "z": 0, "width": 15, "length": 15, "depth": 8 }
+      ],
+      "total_weight": 23.75,
+      "utilization": 0.82
+    }
+  ],
+  "failed": []
+}
