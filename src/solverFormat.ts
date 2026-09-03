@@ -1,4 +1,4 @@
-import type { PackedBox, PackedItem, PackingResult } from './App'
+import type { PackedBox, PackedItem, PackingResult } from './types/packing'
 
 /**
  * Raw output shape from FitSolver, as shared by the solver team, e.g.:

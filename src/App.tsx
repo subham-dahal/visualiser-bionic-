@@ -2,31 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import './App.css'
+import type { PackingResult } from './types/packing'
 
-type Vec3 = { x: number; y: number; z: number }
-type Dims = { w: number; h: number; d: number }
-
-export type PackedItem = {
-  itemId: string
-  dimensions: Dims
-  position: Vec3
-  rotation?: number
-}
-
-export type PackedBox = {
-  boxId: string
-  dimensions: Dims
-  items: PackedItem[]
-}
-
-export type PackingResult = {
-  status: 'success' | 'error'
-  source: 'bionic-solver' | 'mock'
-  solverMs?: number
-  message?: string
-  unpacked?: string[]
-  boxes: PackedBox[]
-}
+export type { PackingResult, PackedBox, PackedItem } from './types/packing'
 
 type AppProps = {
   /** A packing result already fetched by the host (e.g. FitPortal). Takes priority over orderId. */
