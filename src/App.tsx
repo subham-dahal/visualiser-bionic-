@@ -8,9 +8,12 @@ import './App.css'
 const children = [
   { id: "item-1", w: 0.5, h: 0.5, d: 0.5, x: 0,   y: 0,   z: 0   },
   { id: "item-2", w: 1.0, h: 0.3, d: 0.8, x: 0.5, y: 0,   z: 0.2 },
-  { id: "item-3", w: 0.4, h: 0.8, d: 0.4, x: 0,   y: 0.5, z: 1.0 },
-]
+  { id: "item-3", w: 10, h: 0.8, d: 0.4, x: 0,   y: 0.5, z: 1.0 },
+  { id: "item-4", w: 0.4, h: 0.8, d: 0.4, x: 0,   y: 0.5, z: 1.0 },
+  { id: "item-5", w: 0.4, h: 0.8, d: 0.4, x: 0,   y: 0.5, z: 1.0 },
 
+]
+//colors - orange, green, purple, yellow, red
 const colours = [0xff6600, 0x00cc44, 0xcc00ff, 0xffcc00, 0xff0055]
 const BoxSize = { w: 2.001, h: 2.001, d: 2.001 }
 
@@ -58,10 +61,10 @@ function App() {
     camera.position.set(BoxSize.w * 2, BoxSize.h * 2, BoxSize.d * 2)
 
     const controls = new OrbitControls(camera, renderer.domElement)
-    controls.target.set(BoxSize.w / 2, BoxSize.h / 2, BoxSize.d / 2)
 
+    controls.target.set(BoxSize.w / 2, BoxSize.h / 2, BoxSize.d / 2)
     const halfDiagonal = 0.5 * Math.hypot(BoxSize.w, BoxSize.h, BoxSize.d)
-    controls.minDistance = halfDiagonal * 1   //stop camera entering the box
+    controls.minDistance = halfDiagonal * 2   //stop camera entering the box
     controls.maxDistance = halfDiagonal * 5   //stop infinite zoom out
     controls.enablePan = false
     controls.update()
