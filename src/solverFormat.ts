@@ -1,14 +1,15 @@
-import type { PackedBox, PackedItem, PackingResult } from './types/packing'
+import type { Dims, PackedBox, PackedItem, PackingResult } from './types/packing'
 
 /**
- * Raw output shape from FitSolver, as shared by the solver team, e.g.:
- * { "results": [{ "box_reference": "BOX-001", "placements": [...],
- *   "total_weight": 23.75, "utilization": 0.82,
- *   "outer_width": 100, "outer_length": 200, "outer_depth": 50 }], "failed": [] }
+ * Raw output shape from FitSolver. Field names may be camelCase or snake_case;
+ * both are live in production. Unknown top-level fields (algorithmUs, serverUs, …)
+ * are ignored.
  */
 export type SolverPlacement = {
-  item_code: string
-  item_reference: string
+  itemCode?: string
+  item_code?: string
+  itemReference?: string
+  item_reference?: string
   x: number
   y: number
   z: number
@@ -18,48 +19,139 @@ export type SolverPlacement = {
 }
 
 export type SolverBoxResult = {
-  box_reference: string
+  boxReference?: string
+  box_reference?: string
   placements: SolverPlacement[]
-  total_weight: number
-  utilization: number
-  outer_width: number
-  outer_length: number
-  outer_depth: number
+  total_weight?: number
+  totalWeight?: number
+  utilization?: number
+  width?: number
+  length?: number
+  depth?: number
+  outer_width?: number
+  outer_length?: number
+  outer_depth?: number
 }
 
 export type SolverOutput = {
   results: SolverBoxResult[]
-  failed: string[]
+  failed?: string[]
+}
+
+function presentDim(value: unknown): number | undefined {
+  if (typeof value !== 'number' || value === 0) return undefined
+  return value
+}
+
+function firstString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === 'string') return value
+  }
+  return undefined
+}
+
+/**
+ * If two boxes share a boxId, later ones become `${id}-2`, `${id}-3`, …
+ * so every boxId in a PackingResult is unique (App.tsx uses it as a React key).
+ */
+export function uniquifyBoxIds(boxes: PackedBox[]): PackedBox[] {
+  const used = new Set<string>()
+  return boxes.map((box) => {
+    if (!used.has(box.boxId)) {
+      used.add(box.boxId)
+      return box
+    }
+    let n = 2
+    let candidate = `${box.boxId}-${n}`
+    while (used.has(candidate)) {
+      n += 1
+      candidate = `${box.boxId}-${n}`
+    }
+    used.add(candidate)
+    console.warn(`Duplicate boxId "${box.boxId}" disambiguated to "${candidate}"`)
+    return { ...box, boxId: candidate }
+  })
+}
+
+function placementItemId(placement: SolverPlacement, index: number, boxId: string): string {
+  const itemId = firstString(
+    placement.itemCode,
+    placement.item_code,
+    placement.itemReference,
+    placement.item_reference,
+  )
+  if (itemId !== undefined) return itemId
+  const generated = `item-${index}`
+  console.warn(
+    `Missing item id for placement ${index} in box "${boxId}"; generated "${generated}"`,
+  )
+  return generated
+}
+
+function outerDims(box: SolverBoxResult): Dims | undefined {
+  const w = presentDim(box.width) ?? presentDim(box.outer_width)
+  const length = presentDim(box.length) ?? presentDim(box.outer_length)
+  const depth = presentDim(box.depth) ?? presentDim(box.outer_depth)
+  if (w === undefined || length === undefined || depth === undefined) return undefined
+  return { w, h: depth, d: length }
+}
+
+function deriveDims(placements: SolverPlacement[], boxId: string): Dims {
+  let w = 0
+  let h = 0
+  let d = 0
+  for (const p of placements) {
+    w = Math.max(w, p.x + p.width)
+    h = Math.max(h, p.y + p.depth)
+    d = Math.max(d, p.z + p.length)
+  }
+  console.warn(`Derived dimensions for box "${boxId}" from placements`)
+  return { w, h, d }
 }
 
 /**
  * Converts FitSolver's raw output into the PackingResult shape our scene renders
  * (the same shape FitPortal's frontend already reads from GET /api/orders/:id/result).
  *
- * FitSolver places each item by its x,y bottom-left floor position (width x length
- * footprint), with z as the vertical stacking axis (item height = its depth field).
- * three.js is y-up, so we swap solver y/z when mapping into our render axes: our
- * vertical "h" <- solver depth, our other floor axis "d" <- solver length.
+ * FitSolver places each item at (x, y, z) with y as the vertical stacking axis
+ * (item height = its depth field). Position is a direct pass-through; there is
+ * no axis swap. Dimensions map as { w: width, h: depth, d: length }.
  *
  * `rotation` isn't present in the raw solver output at all, so it's left undefined here.
  */
 export function fromSolverOutput(raw: SolverOutput): PackingResult {
-  const boxes: PackedBox[] = raw.results.map((box) => ({
-    boxId: box.box_reference,
-    dimensions: { w: box.outer_width, h: box.outer_depth, d: box.outer_length },
-    items: box.placements.map(
-      (p): PackedItem => ({
-        itemId: p.item_code,
-        dimensions: { w: p.width, h: p.depth, d: p.length },
-        position: { x: p.x, y: p.z, z: p.y },
-      })
-    ),
-  }))
+  const results = raw.results ?? []
+  const failed = raw.failed ?? []
+
+  const boxes: PackedBox[] = results.map((box, boxIndex) => {
+    const placements = box.placements ?? []
+    const boxId =
+      firstString(box.boxReference, box.box_reference) ?? `box-${boxIndex}`
+    const dimensions = outerDims(box) ?? deriveDims(placements, boxId)
+    const items: PackedItem[] = placements.map((p, itemIndex) => ({
+      itemId: placementItemId(p, itemIndex, boxId),
+      dimensions: { w: p.width, h: p.depth, d: p.length },
+      position: { x: p.x, y: p.y, z: p.z },
+    }))
+    return { boxId, dimensions, items }
+  })
+
+  const uniqueBoxes = uniquifyBoxIds(boxes)
+
+  if (results.length === 0 && failed.length > 0) {
+    return {
+      status: 'error',
+      source: 'bionic-solver',
+      message: `Solver returned no packed boxes (${failed.length} unpacked).`,
+      unpacked: failed,
+      boxes: uniqueBoxes,
+    }
+  }
 
   return {
-    status: boxes.length > 0 ? 'success' : 'error',
+    status: 'success',
     source: 'bionic-solver',
-    unpacked: raw.failed,
-    boxes,
+    unpacked: failed,
+    boxes: uniqueBoxes,
   }
 }
