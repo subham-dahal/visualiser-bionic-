@@ -58,19 +58,16 @@ const DEMO_RESULT: PackingResult = {
 const MM_TO_UNITS = 1 / 1000
 const GOLDEN_ANGLE = 137.508
 
-// Distinct colour per item index - hues walk the wheel by the golden angle so
-// consecutive items land far apart and there is no fixed palette to exhaust.
+// Distinct colour per item index - hues walk the golden angle
 const itemColour = (i: number) => {
   const hue = ((i * GOLDEN_ANGLE) % 360) / 360
 
-  // Lightness stays near 0.5, where a hue holds the most chroma - pushing it
-  // higher only tints the colour toward white and reads as washed out.
   let light = 0.5
   if (i % 2 === 0) {
     light = 0.58
   }
 
-  return new THREE.Color().setHSL(hue, 1, light)
+  return new THREE.Color().setHSL(hue, 0.7, light, THREE.SRGBColorSpace)
 }
 
 const itemColourCss = (i: number) => `#${itemColour(i).getHexString()}`
