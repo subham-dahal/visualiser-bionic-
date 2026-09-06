@@ -1,0 +1,33 @@
+/* Camera controls overlaid on the top-right of the canvas region. */
+
+.camera-controls {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.camera-btn {
+  min-width: 2rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid #1d212a;
+  background: rgba(18, 21, 28, 0.85);
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+}
+
+.camera-btn:hover {
+  border-color: #2a2f3a;
+}
+
+.camera-btn--reset {
+  min-width: auto;
+  font-size: 0.75rem;
+}

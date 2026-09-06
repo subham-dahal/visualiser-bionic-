@@ -1,0 +1,58 @@
+/* App shell: the page frame, header and full-screen status messages. */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: #0b0d12;
+  color: #e6e8ec;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.app-header {
+  flex: 0 0 auto;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #1d212a;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.app-subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: #8b93a3;
+}
+
+/* Loading / empty / error message that replaces the whole body. */
+.app-status {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 1rem;
+  text-align: center;
+  color: #8b93a3;
+}
+
+.app-status--error {
+  color: #ff8080;
+}
+
+/* Canvas + detail panel: stacked on mobile, side by side on wider screens. */
+.app-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .app-body {
+    flex-direction: row;
+  }
+}

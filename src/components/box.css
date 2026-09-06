@@ -1,0 +1,28 @@
+/* Box tabs: one pill per packed box, shown only when there is more than one. */
+
+.box-tabs {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid #1d212a;
+}
+
+.box-tab {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #1d212a;
+  background: #12151c;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.box-tab.is-active {
+  border-color: #6ea8fe;
+  background: #17233a;
+}

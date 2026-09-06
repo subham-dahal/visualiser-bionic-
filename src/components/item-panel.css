@@ -1,0 +1,154 @@
+/* Detail panel: selected-item card, prev/next nav, item list and unpacked note. */
+
+.detail-region {
+  flex: 1 1 45%;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.75rem 1rem 1.25rem;
+  border-top: 1px solid #1d212a;
+}
+
+.detail-region h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: #8b93a3;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.item-hint {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  color: #8b93a3;
+}
+
+.item-detail {
+  margin: 0 0 0.6rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #2a3a55;
+  background: #141b28;
+}
+
+.item-detail__name {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.item-detail__specs {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.item-detail__specs dt {
+  color: #8b93a3;
+}
+
+.item-detail__specs dd {
+  margin: 0;
+}
+
+/* prev / position / next */
+.item-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.6rem;
+}
+
+.item-nav__btn {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #1d212a;
+  background: #12151c;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.item-nav__btn:hover {
+  border-color: #2a2f3a;
+}
+
+.item-nav__pos {
+  flex: 1 1 auto;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #8b93a3;
+}
+
+.item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.item-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #1d212a;
+  background: #12151c;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.item-row:hover {
+  border-color: #2a2f3a;
+}
+
+.item-row.is-selected {
+  border-color: #6ea8fe;
+  background: #17233a;
+}
+
+/* Colour  matching the item's mesh*/
+.item-swatch {
+  flex: 0 0 auto;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 2px;
+  border: 1px solid #0000004d;
+}
+
+.item-name {
+  flex: 1 1 auto;
+  font-size: 0.9rem;
+}
+
+.item-dims {
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  color: #8b93a3;
+}
+
+/* Note for items the solver could not fit. */
+.unpacked-note {
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid #4a2f1d;
+  background: #1c140d;
+  color: #f0b675;
+  font-size: 0.8rem;
+}
+
+@media (min-width: 768px) {
+  .detail-region {
+    flex: 0 0 320px;
+    border-top: none;
+    border-left: 1px solid #1d212a;
+  }
+}
