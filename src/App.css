@@ -158,6 +158,41 @@
   letter-spacing: 0.04em;
 }
 
+.item-hint {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  color: #8b93a3;
+}
+
+.item-detail {
+  margin: 0 0 0.6rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #2a3a55;
+  background: #141b28;
+}
+
+.item-detail__name {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.item-detail__specs {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.item-detail__specs dt {
+  color: #8b93a3;
+}
+
+.item-detail__specs dd {
+  margin: 0;
+}
+
 .item-nav {
   display: flex;
   align-items: center;
@@ -169,7 +204,6 @@
 .item-nav__btn {
   flex: 0 0 auto;
   padding: 0.35rem 0.7rem;
-  border-radius: 0.5rem;
   border: 1px solid #1d212a;
   background: #12151c;
   color: inherit;
@@ -204,7 +238,6 @@
   align-items: center;
   gap: 0.6rem;
   padding: 0.5rem 0.6rem;
-  border-radius: 0.5rem;
   border: 1px solid #1d212a;
   background: #12151c;
   color: inherit;
@@ -224,9 +257,10 @@
 
 .item-swatch {
   flex: 0 0 auto;
-  width: 0.85rem;
-  height: 0.85rem;
-  border-radius: 0.2rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 2px;
+  border: 1px solid #0000004d;
 }
 
 .item-name {

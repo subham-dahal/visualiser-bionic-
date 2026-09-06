@@ -56,8 +56,24 @@ const DEMO_RESULT: PackingResult = {
 }
 
 const MM_TO_UNITS = 1 / 1000
-const COLOURS = [0xff6600, 0x00cc44, 0xcc00ff, 0xffcc00, 0xff0055]
-const hexToCss = (hex: number) => `#${hex.toString(16).padStart(6, '0')}`
+const GOLDEN_ANGLE = 137.508
+
+// Distinct colour per item index - hues walk the wheel by the golden angle so
+// consecutive items land far apart and there is no fixed palette to exhaust.
+const itemColour = (i: number) => {
+  const hue = ((i * GOLDEN_ANGLE) % 360) / 360
+
+  // Lightness stays near 0.5, where a hue holds the most chroma - pushing it
+  // higher only tints the colour toward white and reads as washed out.
+  let light = 0.5
+  if (i % 2 === 0) {
+    light = 0.58
+  }
+
+  return new THREE.Color().setHSL(hue, 1, light)
+}
+
+const itemColourCss = (i: number) => `#${itemColour(i).getHexString()}`
 
 async function fetchResult(path: string) {
   let token: string | null = null
@@ -120,6 +136,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
   }, [result])
 
   const box = result?.boxes?.[boxIndex]
+  const selectedItem = selected !== null ? box?.items[selected] : undefined
 
   const stepSelection = (delta: number) => {
     const count = box?.items.length ?? 0
@@ -176,7 +193,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
       const d = item.dimensions.d * MM_TO_UNITS
       const mesh = new THREE.Mesh(
         new THREE.BoxGeometry(w, h, d),
-        new THREE.MeshStandardMaterial({ color: COLOURS[i % COLOURS.length] })
+        new THREE.MeshStandardMaterial({ color: itemColour(i) })
       )
       mesh.position.set(
         item.position.x * MM_TO_UNITS + w / 2 - BOX.w / 2,
@@ -203,12 +220,15 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
     const initialTarget = new THREE.Vector3(BOX.w / 2, BOX.h / 2, BOX.d / 2)
     camera.position.copy(initialCameraPos)
 
+
+    // Orbit Controls (Zoom in, rotate, panning is disabled because it feels clunky on mobile)
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
     controls.target.copy(initialTarget)
     const diagonal = Math.hypot(BOX.w, BOX.h, BOX.d)
-    controls.minDistance = diagonal * 0.5
-    controls.maxDistance = diagonal * 3
+    controls.minDistance = diagonal * 1
+    controls.maxDistance = diagonal * 1.9
+    controls.enablePan = false
     camera.lookAt(controls.target)
     controls.update()
 
@@ -398,10 +418,29 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
               Reset view
             </button>
           </div>
-          <p className="canvas-hint">Drag or arrow keys to rotate · scroll or +/− to zoom · tap an item to inspect</p>
+          <p className="canvas-hint">Drag or arrow keys to rotate</p>
         </main>
         <aside className="detail-region">
           <h2>Items in {box?.boxId}</h2>
+          {selectedItem ? (
+            <div className="item-detail">
+              <p className="item-detail__name">{selectedItem.itemId}</p>
+              <dl className="item-detail__specs">
+                <dt>Size</dt>
+                <dd>
+                  {selectedItem.dimensions.w} × {selectedItem.dimensions.h} × {selectedItem.dimensions.d} mm
+                </dd>
+                <dt>Position</dt>
+                <dd>
+                  x {selectedItem.position.x} · y {selectedItem.position.y} · z {selectedItem.position.z} mm
+                </dd>
+                <dt>Rotation</dt>
+                <dd>{selectedItem.rotation ? `${selectedItem.rotation}°` : 'None'}</dd>
+              </dl>
+            </div>
+          ) : (
+            <p className="item-hint">Select an item below, or in the 3D view.</p>
+          )}
           <div className="item-nav">
             <button type="button" className="item-nav__btn" onClick={() => stepSelection(-1)}>
               ‹ Prev
@@ -421,7 +460,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
                   className={`item-row${selected === i ? ' is-selected' : ''}`}
                   onClick={() => selectItemRef.current(selected === i ? null : i)}
                 >
-                  <span className="item-swatch" style={{ backgroundColor: hexToCss(COLOURS[i % COLOURS.length]) }} />
+                  <span className="item-swatch" style={{ background: itemColourCss(i) }} aria-hidden="true" />
                   <span className="item-name">{item.itemId}</span>
                   <span className="item-dims">
                     {item.dimensions.w} × {item.dimensions.h} × {item.dimensions.d} mm
