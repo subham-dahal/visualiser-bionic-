@@ -20,5 +20,7 @@ export type PackingResult = {
   solverMs?: number
   message?: string
   unpacked?: string[]
+  orderId?: string
+  reference?: string
   boxes: PackedBox[]
 }
