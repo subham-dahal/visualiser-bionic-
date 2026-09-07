@@ -2,7 +2,14 @@
   "name": "visualiser-bionic-",
   "version": "1.0.0",
   "description": "COMP4050 Team Bionic (Visualisers) Project",
-  "main": "index.js",
+  "main": "./dist/fit-visualiser.cjs",
+  "module": "./dist/fit-visualiser.js",
+  "exports": {
+    ".": {
+      "import": "./dist/fit-visualiser.js",
+      "require": "./dist/fit-visualiser.cjs"
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest --watch",
@@ -28,6 +35,11 @@
     "react-dom": "^19.2.8",
     "requirements": "^4.0.2",
     "three": "^0.185.1"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-dom": ">=19",
+    "three": ">=0.150.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

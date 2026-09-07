@@ -1,3 +1,4 @@
+import { resolve } from 'path'
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
 
@@ -16,5 +17,23 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    build: {
+      lib: {
+        entry: resolve(import.meta.dirname, 'src/index.ts'),
+        name: 'FitVisualiser',
+        fileName: 'fit-visualiser',
+        formats: ['es', 'cjs']
+      },
+      rollupOptions: {
+        external: ['react', 'react-dom', 'three'],
+        output: {
+          globals: {
+            react: 'React',
+            'react-dom': 'ReactDOM',
+            three: 'THREE'
+          }
+        }
+      }
+    }
   }
 })
