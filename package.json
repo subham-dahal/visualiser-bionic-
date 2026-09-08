@@ -10,11 +10,13 @@
       "require": "./dist/fit-visualiser.cjs"
     }
   },
+  "files": ["dist"],
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest --watch",
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "prepare": "npm run build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -31,10 +33,7 @@
   },
   "homepage": "https://github.com/subham-dahal/visualiser-bionic-#readme",
   "dependencies": {
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "requirements": "^4.0.2",
-    "three": "^0.185.1"
+    "requirements": "^4.0.2"
   },
   "peerDependencies": {
     "react": ">=19",
@@ -42,6 +41,9 @@
     "three": ">=0.150.0"
   },
   "devDependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "three": "^0.185.1",
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
