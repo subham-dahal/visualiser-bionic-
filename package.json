@@ -36,8 +36,8 @@
     "requirements": "^4.0.2"
   },
   "peerDependencies": {
-    "react": ">=19",
-    "react-dom": ">=19",
+    "react": ">=18",
+    "react-dom": ">=18",
     "three": ">=0.150.0"
   },
   "devDependencies": {
