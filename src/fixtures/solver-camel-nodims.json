@@ -1,0 +1,11 @@
+{
+  "results": [
+    {
+      "boxReference": "SML",
+      "placements": [
+        { "x": 0, "y": 0, "z": 0, "width": 100, "length": 100, "depth": 100 }
+      ]
+    }
+  ],
+  "failed": []
+}
