@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import './App.css'
-import type { PackingResult } from './types/packing'
+import type { PackedItem, PackingResult } from './types/packing'
 
 export type { PackingResult, PackedBox, PackedItem } from './types/packing'
 
@@ -16,27 +16,48 @@ type AppProps = {
 
 // Placeholder scene shown when no result/orderId is supplied (standalone dev mode).
 // Dimensions are in mm, same convention as a real PackingResult.
+// Mix of repeated items to show grouping: same name + size share a row and colour,
+// a rotated Shoebox still groups with the others, a larger Shoebox gets its own group.
 const DEMO_RESULT: PackingResult = {
   status: 'success',
   source: 'mock',
   unpacked: [],
   boxes: [
     {
-      boxId: 'DEMO-MED',
-      dimensions: { w: 2001, h: 2001, d: 2001 },
+      boxId: 'DEMO',
+      dimensions: { w: 1200, h: 600, d: 800 },
       items: [
-        { itemId: 'Widget A', dimensions: { w: 500, h: 500, d: 500 }, position: { x: 0, y: 0, z: 0 } },
-        { itemId: 'Widget B', dimensions: { w: 1000, h: 300, d: 800 }, position: { x: 500, y: 0, z: 200 } },
-        { itemId: 'Fragile Glassware', dimensions: { w: 400, h: 800, d: 400 }, position: { x: 0, y: 500, z: 1000 } },
+        { itemId: 'Shoebox', dimensions: { w: 300, h: 150, d: 200 }, position: { x: 0, y: 0, z: 0 } },
+        { itemId: 'Shoebox', dimensions: { w: 300, h: 150, d: 200 }, position: { x: 300, y: 0, z: 0 } },
+        { itemId: 'Shoebox', dimensions: { w: 300, h: 150, d: 200 }, position: { x: 600, y: 0, z: 0 } },
+        { itemId: 'Shoebox', dimensions: { w: 300, h: 150, d: 200 }, position: { x: 900, y: 0, z: 0 } },
+        { itemId: 'Shoebox', dimensions: { w: 200, h: 150, d: 300 }, position: { x: 600, y: 150, z: 0 } },
+        { itemId: 'Shoebox', dimensions: { w: 400, h: 150, d: 250 }, position: { x: 500, y: 0, z: 200 } },
+        { itemId: 'Kettle', dimensions: { w: 250, h: 300, d: 250 }, position: { x: 0, y: 0, z: 200 } },
+        { itemId: 'Kettle', dimensions: { w: 250, h: 300, d: 250 }, position: { x: 250, y: 0, z: 200 } },
+        { itemId: 'Mug', dimensions: { w: 100, h: 120, d: 100 }, position: { x: 900, y: 0, z: 200 } },
+        { itemId: 'Mug', dimensions: { w: 100, h: 120, d: 100 }, position: { x: 1000, y: 0, z: 200 } },
+        { itemId: 'Mug', dimensions: { w: 100, h: 120, d: 100 }, position: { x: 1100, y: 0, z: 200 } },
+        { itemId: 'Book', dimensions: { w: 200, h: 40, d: 150 }, position: { x: 900, y: 150, z: 0 } },
+        { itemId: 'Book', dimensions: { w: 200, h: 40, d: 150 }, position: { x: 900, y: 190, z: 0 } },
+        { itemId: 'Fragile Glassware', dimensions: { w: 300, h: 400, d: 300 }, position: { x: 0, y: 0, z: 450 } },
       ],
     },
   ],
 }
 
 const MM_TO_UNITS = 1 / 1000
+// Rotation per tap of an on-screen rotate button (15°)
+const BUTTON_ANGLE_STEP = Math.PI / 12
+
+// Selection styling
+const OUTLINE_COLOUR = 0x0b0d12
+const SELECTED_OUTLINE_COLOUR = 0xffffff
+const SELECTED_GLOW = 0.25
+const FADED_OPACITY = 0.3
 const GOLDEN_ANGLE = 137.508
 
-// Distinct colour per item index - hues walk the golden angle
+// Distinct colour per item index, hues walk the golden angle
 const itemColour = (i: number) => {
   const hue = ((i * GOLDEN_ANGLE) % 360) / 360
 
@@ -49,6 +70,35 @@ const itemColour = (i: number) => {
 }
 
 const itemColourCss = (i: number) => `#${itemColour(i).getHexString()}`
+
+// Items with the same name and size share a group (and so a colour).
+// Dimensions are sorted so a rotated copy of the same item still matches.
+type ItemGroup = {
+  itemId: string
+  dimensions: PackedItem['dimensions']
+  items: PackedItem[]
+  itemIndices: number[]
+}
+
+const groupKey = (item: PackedItem) => {
+  const { w, h, d } = item.dimensions
+  return `${item.itemId}|${[w, h, d].sort((a, b) => a - b).join('x')}`
+}
+
+const groupItems = (items: PackedItem[]) => {
+  const groups = new Map<string, ItemGroup>()
+  items.forEach((item, i) => {
+    const key = groupKey(item)
+    let group = groups.get(key)
+    if (!group) {
+      group = { itemId: item.itemId, dimensions: item.dimensions, items: [], itemIndices: [] }
+      groups.set(key, group)
+    }
+    group.items.push(item)
+    group.itemIndices.push(i)
+  })
+  return [...groups.values()]
+}
 
 async function fetchResult(path: string) {
   let token: string | null = null
@@ -70,6 +120,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
   const selectItemRef = useRef<(index: number | null) => void>(() => {})
   const resetViewRef = useRef<() => void>(() => {})
   const zoomCameraRef = useRef<(factor: number) => void>(() => {})
+  const rotateCameraRef = useRef<(deltaAzimuth: number, deltaPolar: number) => void>(() => {})
   const [selected, setSelected] = useState<number | null>(null)
   const [boxIndex, setBoxIndex] = useState(0)
   const [result, setResult] = useState<PackingResult | null>(resultProp ?? null)
@@ -111,10 +162,11 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
   }, [result])
 
   const box = result?.boxes?.[boxIndex]
-  const selectedItem = selected !== null ? box?.items[selected] : undefined
+  const groups = useMemo(() => groupItems(box?.items ?? []), [box])
+  const selectedGroup = selected !== null ? groups[selected] : undefined
 
   const stepSelection = (delta: number) => {
-    const count = box?.items.length ?? 0
+    const count = groups.length
     if (count === 0) return
     const current = selected ?? -1
     selectItemRef.current((current + delta + count) % count)
@@ -162,30 +214,49 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
     )
     scene.add(container)
 
+    // Map each item index to its group index so every copy shares a colour
+    const groupOf: number[] = []
+    groups.forEach((group, g) => group.itemIndices.forEach((i) => (groupOf[i] = g)))
+
     const meshes = box.items.map((item, i) => {
       const w = item.dimensions.w * MM_TO_UNITS
       const h = item.dimensions.h * MM_TO_UNITS
       const d = item.dimensions.d * MM_TO_UNITS
       const mesh = new THREE.Mesh(
         new THREE.BoxGeometry(w, h, d),
-        new THREE.MeshStandardMaterial({ color: itemColour(i) })
+        new THREE.MeshStandardMaterial({ color: itemColour(groupOf[i]), transparent: true })
       )
       mesh.position.set(
         item.position.x * MM_TO_UNITS + w / 2 - BOX.w / 2,
         item.position.y * MM_TO_UNITS + h / 2 - BOX.h / 2,
         item.position.z * MM_TO_UNITS + d / 2 - BOX.d / 2
       )
-      mesh.userData.index = i
+      mesh.userData.index = groupOf[i]
+      // Dark outline so neighbouring items (especially same-colour copies) stay distinct
+      mesh.userData.outline = new THREE.LineSegments(
+        new THREE.EdgesGeometry(mesh.geometry),
+        new THREE.LineBasicMaterial({ color: OUTLINE_COLOUR, transparent: true })
+      )
+      mesh.add(mesh.userData.outline)
       container.add(mesh)
       return mesh
     })
 
     const selectItem = (index: number | null) => {
-      meshes.forEach((mesh, i) => {
+      meshes.forEach((mesh) => {
         const material = mesh.material as THREE.MeshStandardMaterial
-        const isSelected = i === index
-        material.emissive.setHex(isSelected ? 0xffffff : 0x000000)
-        material.emissiveIntensity = isSelected ? 0.7 : 0
+        const outline = (mesh.userData.outline as THREE.LineSegments).material as THREE.LineBasicMaterial
+        const isSelected = mesh.userData.index === index
+        const isFaded = index !== null && !isSelected
+
+        // Glow in the item's own colour so it brightens without washing out
+        material.emissive.copy(isSelected ? material.color : new THREE.Color(0x000000))
+        material.emissiveIntensity = isSelected ? SELECTED_GLOW : 0
+        material.opacity = isFaded ? FADED_OPACITY : 1
+        material.depthWrite = !isFaded
+
+        outline.color.setHex(isSelected ? SELECTED_OUTLINE_COLOUR : OUTLINE_COLOUR)
+        outline.opacity = isFaded ? FADED_OPACITY : 1
       })
       setSelected(index)
     }
@@ -243,6 +314,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
       targetSpherical.radius = THREE.MathUtils.clamp(spherical.radius * factor, controls.minDistance, controls.maxDistance)
     }
     zoomCameraRef.current = zoomCamera
+    rotateCameraRef.current = rotateCamera
 
     const onKeyDown = (event: KeyboardEvent) => {
       switch (event.key) {
@@ -272,7 +344,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
       raycaster.setFromCamera(pointer, camera)
-      const hit = raycaster.intersectObjects(meshes)[0]
+      const hit = raycaster.intersectObjects(meshes, false)[0]
       selectItem(hit ? (hit.object.userData.index as number) : null)
     }
     renderer.domElement.addEventListener('pointerdown', onPointerDown)
@@ -320,7 +392,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
       renderer.domElement.remove()
       renderer.dispose()
     }
-  }, [box])
+  }, [box, groups])
 
   if (loading) {
     return (
@@ -393,24 +465,71 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
               Reset view
             </button>
           </div>
-          <p className="canvas-hint">Drag or arrow keys to rotate</p>
+          <div className="rotate-pad" role="group" aria-label="Rotate view">
+            <button
+              type="button"
+              className="camera-btn rotate-pad__up"
+              aria-label="Rotate up"
+              onClick={() => rotateCameraRef.current(0, -BUTTON_ANGLE_STEP)}
+            >
+              ▲
+            </button>
+            <button
+              type="button"
+              className="camera-btn rotate-pad__left"
+              aria-label="Rotate left"
+              onClick={() => rotateCameraRef.current(-BUTTON_ANGLE_STEP, 0)}
+            >
+              ◀
+            </button>
+            <button
+              type="button"
+              className="camera-btn rotate-pad__right"
+              aria-label="Rotate right"
+              onClick={() => rotateCameraRef.current(BUTTON_ANGLE_STEP, 0)}
+            >
+              ▶
+            </button>
+            <button
+              type="button"
+              className="camera-btn rotate-pad__down"
+              aria-label="Rotate down"
+              onClick={() => rotateCameraRef.current(0, BUTTON_ANGLE_STEP)}
+            >
+              ▼
+            </button>
+          </div>
+          <p className="canvas-hint">Drag, arrow keys or buttons to rotate</p>
         </main>
         <aside className="detail-region">
           <h2>Items in {box?.boxId}</h2>
-          {selectedItem ? (
+          {selectedGroup && selected !== null ? (
             <div className="item-detail">
-              <p className="item-detail__name">{selectedItem.itemId}</p>
+              <p className="item-detail__name">
+                {selectedGroup.itemId}
+                {selectedGroup.items.length > 1 && ` × ${selectedGroup.items.length}`}
+              </p>
               <dl className="item-detail__specs">
+                <dt>Colour</dt>
+                <dd className="item-detail__colour">
+                  <span className="item-swatch" style={{ background: itemColourCss(selected) }} aria-hidden="true" />
+                  {itemColourCss(selected)}
+                </dd>
+                <dt>Quantity</dt>
+                <dd>{selectedGroup.items.length}</dd>
                 <dt>Size</dt>
                 <dd>
-                  {selectedItem.dimensions.w} × {selectedItem.dimensions.h} × {selectedItem.dimensions.d} mm
+                  {selectedGroup.dimensions.w} × {selectedGroup.dimensions.h} × {selectedGroup.dimensions.d} mm
                 </dd>
-                <dt>Position</dt>
+                <dt>{selectedGroup.items.length > 1 ? 'Positions' : 'Position'}</dt>
                 <dd>
-                  x {selectedItem.position.x} · y {selectedItem.position.y} · z {selectedItem.position.z} mm
+                  {selectedGroup.items.map((item, i) => (
+                    <div key={i}>
+                      x {item.position.x} · y {item.position.y} · z {item.position.z} mm
+                      {item.rotation ? ` · ${item.rotation}°` : ''}
+                    </div>
+                  ))}
                 </dd>
-                <dt>Rotation</dt>
-                <dd>{selectedItem.rotation ? `${selectedItem.rotation}°` : 'None'}</dd>
               </dl>
             </div>
           ) : (
@@ -421,24 +540,27 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
               ‹ Prev
             </button>
             <span className="item-nav__pos">
-              {selected !== null ? selected + 1 : '–'} / {box?.items.length ?? 0}
+              {selected !== null ? selected + 1 : '–'} / {groups.length}
             </span>
             <button type="button" className="item-nav__btn" onClick={() => stepSelection(1)}>
               Next ›
             </button>
           </div>
           <ul className="item-list">
-            {box?.items.map((item, i) => (
-              <li key={`${item.itemId}-${i}`}>
+            {groups.map((group, g) => (
+              <li key={`${group.itemId}-${g}`}>
                 <button
                   type="button"
-                  className={`item-row${selected === i ? ' is-selected' : ''}`}
-                  onClick={() => selectItemRef.current(selected === i ? null : i)}
+                  className={`item-row${selected === g ? ' is-selected' : ''}`}
+                  onClick={() => selectItemRef.current(selected === g ? null : g)}
                 >
-                  <span className="item-swatch" style={{ background: itemColourCss(i) }} aria-hidden="true" />
-                  <span className="item-name">{item.itemId}</span>
+                  <span className="item-swatch" style={{ background: itemColourCss(g) }} aria-hidden="true" />
+                  <span className="item-name">
+                    {group.itemId}
+                    {group.items.length > 1 && <span className="item-qty"> × {group.items.length}</span>}
+                  </span>
                   <span className="item-dims">
-                    {item.dimensions.w} × {item.dimensions.h} × {item.dimensions.d} mm
+                    {group.dimensions.w} × {group.dimensions.h} × {group.dimensions.d} mm
                   </span>
                 </button>
               </li>

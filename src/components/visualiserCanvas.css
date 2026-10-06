@@ -14,16 +14,15 @@
 
 .canvas-hint {
   position: absolute;
-  left: 50%;
+  left: 0.75rem;
   bottom: 0.75rem;
-  transform: translateX(-50%);
   margin: 0;
   padding: 0.35rem 0.75rem;
   font-size: 0.75rem;
   color: #b5bcc9;
   background: rgba(11, 13, 18, 0.7);
   border-radius: 999px;
-  white-space: nowrap;
+  max-width: calc(100% - 9.5rem);
   pointer-events: none;
 }
 

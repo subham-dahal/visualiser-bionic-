@@ -1,4 +1,4 @@
-/* Detail panel: selected-item card, prev/next nav, item list and unpacked note. */
+/* Detail panel: selected item card, prev/next nav, item list and unpacked note. */
 
 .detail-region {
   flex: 1 1 45%;
@@ -151,4 +151,16 @@
     border-top: none;
     border-left: 1px solid #1d212a;
   }
+}
+
+/* Grouped items: quantity next to the name, colour swatch in the detail card */
+.item-qty {
+  color: #8b93a3;
+  font-size: 0.8rem;
+}
+
+.item-detail__colour {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }

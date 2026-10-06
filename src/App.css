@@ -1,6 +1,6 @@
 /* Style entry point - every rule lives in one of the files below. */
 @import './styles/base.css';
 @import './components/box.css';
-@import './components/visualiser-canvas.css';
+@import './components/visualiserCanvas.css';
 @import './components/camera.css';
-@import './components/item-panel.css';
+@import './components/itemPanel.css';
