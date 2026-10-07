@@ -1,5 +1,5 @@
-/* 3D view: the region the WebGL renderer mounts into, plus its hint text.
-   Camera buttons that sit on top of it live in camera.css. */
+/* 3D view: the region the WebGL renderer is in, plus its hint text.
+   Camera buttons that sit on top of it is in camera.css. */
 
 .canvas-region {
   position: relative;

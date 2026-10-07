@@ -510,18 +510,18 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
                 {selectedGroup.items.length > 1 && ` × ${selectedGroup.items.length}`}
               </p>
               <dl className="item-detail__specs">
-                <dt>Colour</dt>
+                <dt>Colour:</dt>
                 <dd className="item-detail__colour">
                   <span className="item-swatch" style={{ background: itemColourCss(selected) }} aria-hidden="true" />
                   {itemColourCss(selected)}
                 </dd>
-                <dt>Quantity</dt>
+                <dt>Quantity:</dt>
                 <dd>{selectedGroup.items.length}</dd>
-                <dt>Size</dt>
+                <dt>Size:</dt>
                 <dd>
                   {selectedGroup.dimensions.w} × {selectedGroup.dimensions.h} × {selectedGroup.dimensions.d} mm
                 </dd>
-                <dt>{selectedGroup.items.length > 1 ? 'Positions' : 'Position'}</dt>
+                <dt>{selectedGroup.items.length > 1 ? 'Positions:' : 'Position:'}</dt>
                 <dd>
                   {selectedGroup.items.map((item, i) => (
                     <div key={i}>
