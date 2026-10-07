@@ -1,6 +1,6 @@
 # Team Bionic (FitVisualiser) — Sprint 1 Minutes
 
-**Week 6 — 9 Sep 2026**
+**Week 7 — 9 Sep 2026**
 
 **Present:** Peter (Product Owner/Developer), Subham (Scrum Master/ Developer), Vaibhav (Repository Manager/Developer) Sonny (Project Manager/ Developer)
 
