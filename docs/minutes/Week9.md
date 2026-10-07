@@ -15,7 +15,7 @@
 
 **Vaibhav** — 
 
-**Sanpany** - Worked with Subham on UI layout. Refactored the Visualiser App.css into components. Item view detail panel is now more readable and interactive. Colour of item boxes are decided by the item it sits in the packing sequence. Panning is disabled because of clunkiness on mobile.
+**Sanpany** - Going to work towards refactoring codebase (app.tsx) and mini changes to item panels.
 ---
 
 ## Current Focus
