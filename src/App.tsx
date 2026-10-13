@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import type { PackingResult } from './types/packing'
-import { usePackingResult } from './hooks/usePackingResult'
+import { usePackingResult } from './packing/usePackingResult'
 import { groupItems } from './utils/grouping'
 import StatusScreen from './components/StatusScreen'
 import BoxTabs from './components/BoxTabs'

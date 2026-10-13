@@ -3,7 +3,6 @@ type StatusScreenProps = {
   readonly isError?: boolean
 }
 
-// Full-page message shown while loading, on error, or when there is nothing to draw
 function StatusScreen({ message, isError = false }: StatusScreenProps) {
   return (
     <div className="app">
