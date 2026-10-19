@@ -10,10 +10,10 @@ export function aabbOverlap(a: PackedItem, b: PackedItem, epsilon = 0.01): boole
     Math.min(a.position.x + a.dimensions.w, b.position.x + b.dimensions.w) -
     Math.max(a.position.x, b.position.x)
   const overlapY =
-    Math.min(a.position.y + a.dimensions.h, b.position.y + b.dimensions.h) -
+    Math.min(a.position.y + a.dimensions.d, b.position.y + b.dimensions.d) -
     Math.max(a.position.y, b.position.y)
   const overlapZ =
-    Math.min(a.position.z + a.dimensions.d, b.position.z + b.dimensions.d) -
+    Math.min(a.position.z + a.dimensions.l, b.position.z + b.dimensions.l) -
     Math.max(a.position.z, b.position.z)
   return overlapX > epsilon && overlapY > epsilon && overlapZ > epsilon
 }
