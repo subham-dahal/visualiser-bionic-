@@ -10,8 +10,8 @@ export type ItemGroup = {
 }
 
 const groupKey = (item: PackedItem) => {
-  const { w, d, l } = item.dimensions
-  return `${item.itemId}|${[w, d, l].sort((a, b) => a - b).join('x')}`
+  const { width, depth, length } = item.dimensions
+  return `${item.itemId}|${[width, depth, length].sort((a, b) => a - b).join('x')}`
 }
 
 export const groupItems = (items: PackedItem[]) => {

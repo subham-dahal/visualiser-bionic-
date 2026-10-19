@@ -89,24 +89,24 @@ function placementItemId(placement: SolverPlacement, index: number, boxId: strin
 }
 
 function outerDims(box: SolverBoxResult): Dims | undefined {
-  const w = presentDim(box.width) ?? presentDim(box.outer_width)
+  const width = presentDim(box.width) ?? presentDim(box.outer_width)
   const length = presentDim(box.length) ?? presentDim(box.outer_length)
   const depth = presentDim(box.depth) ?? presentDim(box.outer_depth)
-  if (w === undefined || length === undefined || depth === undefined) return undefined
-  return { w, d: depth, l: length }
+  if (width === undefined || length === undefined || depth === undefined) return undefined
+  return { width, depth, length }
 }
 
 function deriveDims(placements: SolverPlacement[], boxId: string): Dims {
-  let w = 0
-  let d = 0
-  let l = 0
+  let width = 0
+  let depth = 0
+  let length = 0
   for (const p of placements) {
-    w = Math.max(w, p.x + p.width)
-    d = Math.max(d, p.y + p.depth)
-    l = Math.max(l, p.z + p.length)
+    width = Math.max(width, p.x + p.width)
+    depth = Math.max(depth, p.y + p.depth)
+    length = Math.max(length, p.z + p.length)
   }
   console.warn(`Derived dimensions for box "${boxId}" from placements`)
-  return { w, d, l }
+  return { width, depth, length }
 }
 
 /**
@@ -115,7 +115,7 @@ function deriveDims(placements: SolverPlacement[], boxId: string): Dims {
  *
  * FitSolver places each item at (x, y, z) with y as the vertical stacking axis
  * (item height = its depth field). Position is a direct pass-through; there is
- * no axis swap. Dimensions map as { w: width, h: depth, d: length }.
+ * no axis swap. Dimensions map as { width, depth, length } directly.
  *
  * `rotation` isn't present in the raw solver output at all, so it's left undefined here.
  */
@@ -130,7 +130,7 @@ export function fromSolverOutput(raw: SolverOutput): PackingResult {
     const dimensions = outerDims(box) ?? deriveDims(placements, boxId)
     const items: PackedItem[] = placements.map((p, itemIndex) => ({
       itemId: placementItemId(p, itemIndex, boxId),
-      dimensions: { w: p.width, d: p.depth, l: p.length },
+      dimensions: { width: p.width, depth: p.depth, length: p.length },
       position: { x: p.x, y: p.y, z: p.z },
     }))
     return { boxId, dimensions, items }

@@ -16,8 +16,8 @@ const hostResult: PackingResult = {
   boxes: [
     {
       boxId: 'Satchel-M',
-      dimensions: { w: 400, h: 100, d: 300 },
-      items: [{ itemId: 'Hoodie', dimensions: { w: 350, h: 60, d: 280 }, position: { x: 0, y: 0, z: 0 } }],
+      dimensions: { width: 400, depth: 100, length: 300 },
+      items: [{ itemId: 'Hoodie', dimensions: { width: 350, depth: 60, length: 280 }, position: { x: 0, y: 0, z: 0 } }],
     },
   ],
 }

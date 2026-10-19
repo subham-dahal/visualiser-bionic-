@@ -9,7 +9,7 @@
 
 ## Open question
 
-In `solver-camel.json`, reading the solver's `y` as the vertical axis (with `depth` as each item's height) puts every item flush against its neighbour with zero overlap — position identity (`x→x`, `y→y`, `z→z`), dimensions `{w: width, h: depth, d: length}`. `solverFormat.ts` currently assumes `z` is vertical instead. Not fixed yet in code — that's the next step, and is the likely cause of the box-overlap bug in the week 6 minutes.
+In `solver-camel.json`, reading the solver's `y` as the vertical axis (with `depth` as each item's height) puts every item flush against its neighbour with zero overlap — position identity (`x→x`, `y→y`, `z→z`), dimensions `{width, depth, length}`. `solverFormat.ts` currently assumes `z` is vertical instead. Not fixed yet in code — that's the next step, and is the likely cause of the box-overlap bug in the week 6 minutes.
 
 ## API client
 

@@ -33,9 +33,9 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
     if (!mount) return
 
     const BOX = {
-      w: box.dimensions.w * MM_TO_UNITS,
-      h: box.dimensions.d * MM_TO_UNITS,
-      d: box.dimensions.l * MM_TO_UNITS,
+      width: box.dimensions.width * MM_TO_UNITS,
+      depth: box.dimensions.depth * MM_TO_UNITS,
+      length: box.dimensions.length * MM_TO_UNITS,
     }
 
     const scene = new THREE.Scene()
@@ -50,18 +50,18 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.7))
     const keyLight = new THREE.DirectionalLight(0xffffff, 1)
-    keyLight.position.set(BOX.w * 2, BOX.h * 3, BOX.d * 2)
+    keyLight.position.set(BOX.width * 2, BOX.depth * 3, BOX.length * 2)
     scene.add(keyLight)
 
-    const grid = new THREE.GridHelper(Math.max(BOX.w, BOX.d) * 3, 12, 0x2a2f3a, 0x1a1e26)
+    const grid = new THREE.GridHelper(Math.max(BOX.width, BOX.length) * 3, 12, 0x2a2f3a, 0x1a1e26)
     grid.position.y = -0.001
    // scene.add(grid)
 
     const container = new THREE.Mesh(
-      new THREE.BoxGeometry(BOX.w, BOX.h, BOX.d),
+      new THREE.BoxGeometry(BOX.width, BOX.depth, BOX.length),
       new THREE.MeshStandardMaterial({ color: 0x87ceeb, transparent: true, opacity: 0.18, depthWrite: false })
     )
-    container.position.set(BOX.w / 2, BOX.h / 2, BOX.d / 2)
+    container.position.set(BOX.width / 2, BOX.depth / 2, BOX.length / 2)
     container.add(
       new THREE.LineSegments(
         new THREE.EdgesGeometry(container.geometry),
@@ -75,17 +75,17 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
     groups.forEach((group, g) => group.itemIndices.forEach((i) => (groupOf[i] = g)))
 
     const meshes = box.items.map((item, i) => {
-      const w = item.dimensions.w * MM_TO_UNITS
-      const d = item.dimensions.d * MM_TO_UNITS
-      const l = item.dimensions.l * MM_TO_UNITS
+      const width = item.dimensions.width * MM_TO_UNITS
+      const depth = item.dimensions.depth * MM_TO_UNITS
+      const length = item.dimensions.length * MM_TO_UNITS
       const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(w, d, l),
+        new THREE.BoxGeometry(width, depth, length),
         new THREE.MeshStandardMaterial({ color: itemColour(groupOf[i]), transparent: true })
       )
       mesh.position.set(
-        item.position.x * MM_TO_UNITS + w / 2 - BOX.w / 2,
-        item.position.y * MM_TO_UNITS + d / 2 - BOX.h / 2,
-        item.position.z * MM_TO_UNITS + l / 2 - BOX.d / 2
+        item.position.x * MM_TO_UNITS + width / 2 - BOX.width / 2,
+        item.position.y * MM_TO_UNITS + depth / 2 - BOX.depth / 2,
+        item.position.z * MM_TO_UNITS + length / 2 - BOX.length / 2
       )
       mesh.userData.index = groupOf[i]
       // Dark outline so neighbouring items (especially same-colour copies) stay distinct
@@ -118,8 +118,8 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
     }
     selectItemRef.current = selectItem
 
-    const initialCameraPos = new THREE.Vector3(BOX.w * 1.8, BOX.h * 1.6, BOX.d * 2.2)
-    const initialTarget = new THREE.Vector3(BOX.w / 2, BOX.h / 2, BOX.d / 2)
+    const initialCameraPos = new THREE.Vector3(BOX.width * 1.8, BOX.depth * 1.6, BOX.length * 2.2)
+    const initialTarget = new THREE.Vector3(BOX.width / 2, BOX.depth / 2, BOX.length / 2)
     camera.position.copy(initialCameraPos)
 
 
@@ -127,7 +127,7 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
     controls.target.copy(initialTarget)
-    const diagonal = Math.hypot(BOX.w, BOX.h, BOX.d)
+    const diagonal = Math.hypot(BOX.width, BOX.depth, BOX.length)
     controls.minDistance = diagonal * 1
     controls.maxDistance = diagonal * 1.9
     controls.enablePan = false

@@ -14,7 +14,7 @@ afterEach(() => {
 
 const box = (boxId: string): PackedBox => ({
   boxId,
-  dimensions: { w: 600, h: 400, d: 300 },
+  dimensions: { width: 600, depth: 400, length: 300 },
   items: [],
 })
 
@@ -54,7 +54,7 @@ describe('uniquifyBoxIds', () => {
 
 // fromSolverOutput: field-name variants (camelCase / snake_case) and axis mapping
 describe('fromSolverOutput field mapping', () => {
-  it('maps a camelCase placement to position pass-through and dims {w: width, h: depth, d: length}', () => {
+  it('maps a camelCase placement to position pass-through and dims {width: width, depth: depth, length: length}', () => {
     const result = fromSolverOutput({
       results: [
         {
@@ -71,10 +71,10 @@ describe('fromSolverOutput field mapping', () => {
 
     const packed = result.boxes[0]!
     expect(packed.boxId).toBe('MED-BOX')
-    expect(packed.dimensions).toEqual({ w: 400, h: 250, d: 300 })
+    expect(packed.dimensions).toEqual({ width: 400, depth: 250, length: 300 })
     expect(packed.items[0]).toEqual({
       itemId: 'SKU-MUG-350',
-      dimensions: { w: 90, h: 110, d: 80 },
+      dimensions: { width: 90, depth: 110, length: 80 },
       position: { x: 10, y: 20, z: 30 },
     })
     expect(packed.items[0]).not.toHaveProperty('rotation')
@@ -93,7 +93,7 @@ describe('fromSolverOutput field mapping', () => {
       ],
     })
     expect(result.boxes[0]?.boxId).toBe('LRG-BOX')
-    expect(result.boxes[0]?.dimensions).toEqual({ w: 600, h: 350, d: 400 })
+    expect(result.boxes[0]?.dimensions).toEqual({ width: 600, depth: 350, length: 400 })
     expect(result.boxes[0]?.items[0]?.itemId).toBe('SKU-KETTLE')
   })
 
@@ -174,8 +174,8 @@ describe('fromSolverOutput box dimensions', () => {
         },
       ],
     })
-    // w = max(x + width) = 500, h = max(y + depth) = 250, d = max(z + length) = 300
-    expect(result.boxes[0]?.dimensions).toEqual({ w: 500, h: 250, d: 300 })
+    // width = max(x + width) = 500, depth = max(y + depth) = 250, length = max(z + length) = 300
+    expect(result.boxes[0]?.dimensions).toEqual({ width: 500, depth: 250, length: 300 })
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Derived dimensions for box "Crate"'))
   })
 
@@ -190,7 +190,7 @@ describe('fromSolverOutput box dimensions', () => {
         },
       ],
     })
-    expect(result.boxes[0]?.dimensions).toEqual({ w: 120, h: 60, d: 80 })
+    expect(result.boxes[0]?.dimensions).toEqual({ width: 120, depth: 60, length: 80 })
   })
 
   it('mixes camelCase and outer_* dims per axis', () => {
@@ -206,12 +206,12 @@ describe('fromSolverOutput box dimensions', () => {
         },
       ],
     })
-    expect(result.boxes[0]?.dimensions).toEqual({ w: 500, h: 220, d: 350 })
+    expect(result.boxes[0]?.dimensions).toEqual({ width: 500, depth: 220, length: 350 })
   })
 
   it('yields zero dims for a box with no placements and no dims', () => {
     const result = fromSolverOutput({ results: [{ boxReference: 'Empty', placements: [] }] })
-    expect(result.boxes[0]?.dimensions).toEqual({ w: 0, h: 0, d: 0 })
+    expect(result.boxes[0]?.dimensions).toEqual({ width: 0, depth: 0, length: 0 })
     expect(result.boxes[0]?.items).toEqual([])
   })
 

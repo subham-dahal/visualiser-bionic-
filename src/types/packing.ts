@@ -1,5 +1,5 @@
 export type Vec3 = { x: number; y: number; z: number }
-export type Dims = { w: number; d: number; l: number }
+export type Dims = { width: number; depth: number; length: number }
 
 export type PackedItem = {
   itemId: string

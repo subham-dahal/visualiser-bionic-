@@ -7,13 +7,13 @@ import type { PackedItem } from '../types/packing'
  */
 export function aabbOverlap(a: PackedItem, b: PackedItem, epsilon = 0.01): boolean {
   const overlapX =
-    Math.min(a.position.x + a.dimensions.w, b.position.x + b.dimensions.w) -
+    Math.min(a.position.x + a.dimensions.width, b.position.x + b.dimensions.width) -
     Math.max(a.position.x, b.position.x)
   const overlapY =
-    Math.min(a.position.y + a.dimensions.d, b.position.y + b.dimensions.d) -
+    Math.min(a.position.y + a.dimensions.depth, b.position.y + b.dimensions.depth) -
     Math.max(a.position.y, b.position.y)
   const overlapZ =
-    Math.min(a.position.z + a.dimensions.l, b.position.z + b.dimensions.l) -
+    Math.min(a.position.z + a.dimensions.length, b.position.z + b.dimensions.length) -
     Math.max(a.position.z, b.position.z)
   return overlapX > epsilon && overlapY > epsilon && overlapZ > epsilon
 }

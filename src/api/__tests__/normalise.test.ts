@@ -33,10 +33,10 @@ describe('normalisePackingResult', () => {
     const result = normalisePackingResult(solverCamelNodims)
     expect(result.boxes).toHaveLength(1)
     const box = result.boxes[0]!
-    expect(box.dimensions.w).toBeGreaterThan(0)
-    expect(box.dimensions.h).toBeGreaterThan(0)
-    expect(box.dimensions.d).toBeGreaterThan(0)
-    expect(box.dimensions).toEqual({ w: 100, h: 100, d: 100 })
+    expect(box.dimensions.width).toBeGreaterThan(0)
+    expect(box.dimensions.depth).toBeGreaterThan(0)
+    expect(box.dimensions.length).toBeGreaterThan(0)
+    expect(box.dimensions).toEqual({ width: 100, depth: 100, length: 100 })
     expect(box.items).toHaveLength(1)
     expect(box.items[0]?.itemId).toBe('item-0')
   })
@@ -84,17 +84,17 @@ describe('normalisePackingResult rejects malformed payloads', () => {
     expect(() =>
       normalisePackingResult({
         status: 'success',
-        boxes: [{ boxId: 'Crate-1', dimensions: { w: 1, h: 1, d: 1 }, items: [] }, 'Crate-2'],
+        boxes: [{ boxId: 'Crate-1', dimensions: { width: 1, depth: 1, length: 1 }, items: [] }, 'Crate-2'],
       }),
     ).toThrow('boxes[1] is not an object')
   })
 
   it.each([
-    ['boxId is missing', { dimensions: { w: 600, h: 300, d: 400 }, items: [] }],
-    ['boxId is a number', { boxId: 7, dimensions: { w: 600, h: 300, d: 400 }, items: [] }],
+    ['boxId is missing', { dimensions: { width: 600, depth: 300, length: 400 }, items: [] }],
+    ['boxId is a number', { boxId: 7, dimensions: { width: 600, depth: 300, length: 400 }, items: [] }],
     ['dimensions is missing', { boxId: 'Crate-1', items: [] }],
     ['dimensions is null', { boxId: 'Crate-1', dimensions: null, items: [] }],
-    ['items is not an array', { boxId: 'Crate-1', dimensions: { w: 600, h: 300, d: 400 }, items: {} }],
+    ['items is not an array', { boxId: 'Crate-1', dimensions: { width: 600, depth: 300, length: 400 }, items: {} }],
   ])('throws when %s', (_label, badBox) => {
     expect(() => normalisePackingResult({ status: 'success', boxes: [badBox] })).toThrow(
       'boxes[0] is missing boxId, dimensions, or items',
@@ -124,7 +124,7 @@ describe('normalisePackingResult portal payloads', () => {
 
   it('disambiguates duplicate portal boxIds', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const box = { boxId: 'Crate', dimensions: { w: 600, h: 300, d: 400 }, items: [] }
+    const box = { boxId: 'Crate', dimensions: { width: 600, depth: 300, length: 400 }, items: [] }
     const result = normalisePackingResult({ status: 'success', boxes: [box, { ...box }] })
     expect(result.boxes.map((b) => b.boxId)).toEqual(['Crate', 'Crate-2'])
     vi.restoreAllMocks()
@@ -133,7 +133,7 @@ describe('normalisePackingResult portal payloads', () => {
   it('prefers the portal shape when a payload has both boxes and results', () => {
     const result = normalisePackingResult({
       status: 'success',
-      boxes: [{ boxId: 'Portal-Box', dimensions: { w: 1, h: 1, d: 1 }, items: [] }],
+      boxes: [{ boxId: 'Portal-Box', dimensions: { width: 1, depth: 1, length: 1 }, items: [] }],
       results: [{ boxReference: 'Solver-Box', placements: [] }],
     })
     expect(result.boxes.map((b) => b.boxId)).toEqual(['Portal-Box'])
@@ -158,9 +158,9 @@ describe('fixture packing integrity', () => {
   it('portal-result.json keeps every item inside its box bounds', () => {
     for (const box of normalisePackingResult(portalResult).boxes) {
       for (const item of box.items) {
-        expect(item.position.x + item.dimensions.w).toBeLessThanOrEqual(box.dimensions.w)
-        expect(item.position.y + item.dimensions.h).toBeLessThanOrEqual(box.dimensions.h)
-        expect(item.position.z + item.dimensions.d).toBeLessThanOrEqual(box.dimensions.d)
+        expect(item.position.x + item.dimensions.width).toBeLessThanOrEqual(box.dimensions.width)
+        expect(item.position.y + item.dimensions.depth).toBeLessThanOrEqual(box.dimensions.depth)
+        expect(item.position.z + item.dimensions.length).toBeLessThanOrEqual(box.dimensions.length)
       }
     }
   })

@@ -3,9 +3,9 @@ import { DEMO_RESULT } from '../../demo/demoResult'
 import type { PackedItem } from '../../types/packing'
 import { groupItems } from '../grouping'
 
-const item = (itemId: string, [w, h, d]: [number, number, number], x = 0): PackedItem => ({
+const item = (itemId: string, [width, depth, length]: [number, number, number], x = 0): PackedItem => ({
   itemId,
-  dimensions: { w, h, d },
+  dimensions: { width, depth, length },
   position: { x, y: 0, z: 0 },
 })
 
@@ -44,7 +44,7 @@ describe('groupItems', () => {
 
   it('keeps the first-seen orientation as the group dimensions', () => {
     const groups = groupItems([item('Shoebox', [200, 150, 300]), item('Shoebox', [300, 150, 200])])
-    expect(groups[0]?.dimensions).toEqual({ w: 200, h: 150, d: 300 })
+    expect(groups[0]?.dimensions).toEqual({ width: 200, depth: 150, length: 300 })
   })
 
   it('separates items with the same id but a different size', () => {

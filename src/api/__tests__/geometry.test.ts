@@ -5,8 +5,8 @@ import { aabbOverlap, findOverlaps } from '../geometry'
 const item = (
   itemId: string,
   [x, y, z]: [number, number, number],
-  [w, h, d]: [number, number, number],
-): PackedItem => ({ itemId, position: { x, y, z }, dimensions: { w, h, d } })
+  [width, depth, length]: [number, number, number],
+): PackedItem => ({ itemId, position: { x, y, z }, dimensions: { width, depth, length } })
 
 // aabbOverlap: two boxes overlap only if they intersect by more than epsilon on every axis
 describe('aabbOverlap', () => {
