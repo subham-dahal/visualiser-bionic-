@@ -93,20 +93,20 @@ function outerDims(box: SolverBoxResult): Dims | undefined {
   const length = presentDim(box.length) ?? presentDim(box.outer_length)
   const depth = presentDim(box.depth) ?? presentDim(box.outer_depth)
   if (w === undefined || length === undefined || depth === undefined) return undefined
-  return { w, h: depth, d: length }
+  return { w, d: depth, l: length }
 }
 
 function deriveDims(placements: SolverPlacement[], boxId: string): Dims {
   let w = 0
-  let h = 0
   let d = 0
+  let l = 0
   for (const p of placements) {
     w = Math.max(w, p.x + p.width)
-    h = Math.max(h, p.y + p.depth)
-    d = Math.max(d, p.z + p.length)
+    d = Math.max(d, p.y + p.depth)
+    l = Math.max(l, p.z + p.length)
   }
   console.warn(`Derived dimensions for box "${boxId}" from placements`)
-  return { w, h, d }
+  return { w, d, l }
 }
 
 /**
@@ -130,7 +130,7 @@ export function fromSolverOutput(raw: SolverOutput): PackingResult {
     const dimensions = outerDims(box) ?? deriveDims(placements, boxId)
     const items: PackedItem[] = placements.map((p, itemIndex) => ({
       itemId: placementItemId(p, itemIndex, boxId),
-      dimensions: { w: p.width, h: p.depth, d: p.length },
+      dimensions: { w: p.width, d: p.depth, l: p.length },
       position: { x: p.x, y: p.y, z: p.z },
     }))
     return { boxId, dimensions, items }

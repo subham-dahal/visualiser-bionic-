@@ -23,8 +23,8 @@ describe('DEMO_RESULT', () => {
       expect(item.position.y).toBeGreaterThanOrEqual(0)
       expect(item.position.z).toBeGreaterThanOrEqual(0)
       expect(item.position.x + item.dimensions.w).toBeLessThanOrEqual(box.dimensions.w)
-      expect(item.position.y + item.dimensions.h).toBeLessThanOrEqual(box.dimensions.h)
-      expect(item.position.z + item.dimensions.d).toBeLessThanOrEqual(box.dimensions.d)
+      expect(item.position.y + item.dimensions.d).toBeLessThanOrEqual(box.dimensions.d)
+      expect(item.position.z + item.dimensions.l).toBeLessThanOrEqual(box.dimensions.l)
     }
   })
 

@@ -34,8 +34,8 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
 
     const BOX = {
       w: box.dimensions.w * MM_TO_UNITS,
-      h: box.dimensions.h * MM_TO_UNITS,
-      d: box.dimensions.d * MM_TO_UNITS,
+      h: box.dimensions.d * MM_TO_UNITS,
+      d: box.dimensions.l * MM_TO_UNITS,
     }
 
     const scene = new THREE.Scene()
@@ -76,16 +76,16 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
 
     const meshes = box.items.map((item, i) => {
       const w = item.dimensions.w * MM_TO_UNITS
-      const h = item.dimensions.h * MM_TO_UNITS
       const d = item.dimensions.d * MM_TO_UNITS
+      const l = item.dimensions.l * MM_TO_UNITS
       const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(w, h, d),
+        new THREE.BoxGeometry(w, d, l),
         new THREE.MeshStandardMaterial({ color: itemColour(groupOf[i]), transparent: true })
       )
       mesh.position.set(
         item.position.x * MM_TO_UNITS + w / 2 - BOX.w / 2,
-        item.position.y * MM_TO_UNITS + h / 2 - BOX.h / 2,
-        item.position.z * MM_TO_UNITS + d / 2 - BOX.d / 2
+        item.position.y * MM_TO_UNITS + d / 2 - BOX.h / 2,
+        item.position.z * MM_TO_UNITS + l / 2 - BOX.d / 2
       )
       mesh.userData.index = groupOf[i]
       // Dark outline so neighbouring items (especially same-colour copies) stay distinct

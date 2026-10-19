@@ -39,7 +39,7 @@ function ItemPanel({ boxId, groups, selected, onSelect, unpacked }: ItemPanelPro
             <dd>{selectedGroup.items.length}</dd>
             <dt>Size:</dt>
             <dd>
-              {selectedGroup.dimensions.w} × {selectedGroup.dimensions.h} × {selectedGroup.dimensions.d} mm
+              {selectedGroup.dimensions.w} × {selectedGroup.dimensions.d} × {selectedGroup.dimensions.l} mm
             </dd>
             <dt>{selectedGroup.items.length > 1 ? 'Positions:' : 'Position:'}</dt>
             <dd>
@@ -80,7 +80,7 @@ function ItemPanel({ boxId, groups, selected, onSelect, unpacked }: ItemPanelPro
                 {group.items.length > 1 && <span className="item-qty"> × {group.items.length}</span>}
               </span>
               <span className="item-dims">
-                {group.dimensions.w} × {group.dimensions.h} × {group.dimensions.d} mm
+                {group.dimensions.w} × {group.dimensions.d} × {group.dimensions.l} mm
               </span>
             </button>
           </li>
