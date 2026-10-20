@@ -17,9 +17,9 @@ const FADED_OPACITY = 0.3
 type VisualiserCanvasProps = {
   readonly box: PackedBox
   readonly groups: ItemGroup[]
-  /** Filled in by the scene so the item panel can highlight a group in 3D */
-  readonly selectItemRef: RefObject<(index: number | null) => void>
-  readonly onSelect: (index: number | null) => void
+  /** Filled in by the scene so the item panel can highlight a group (or one item in it) in 3D */
+  readonly selectItemRef: RefObject<(group: number | null, item?: number | null) => void>
+  readonly onSelect: (group: number | null, item: number | null) => void
 }
 
 function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCanvasProps) {
@@ -70,7 +70,7 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
     )
     scene.add(container)
 
-    // Map each item index to its group index so every copy shares a colour
+    // Map each item index to its group index (used for selection and colour)
     const groupOf: number[] = []
     groups.forEach((group, g) => group.itemIndices.forEach((i) => (groupOf[i] = g)))
 
@@ -80,7 +80,7 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
       const length = item.dimensions.length * MM_TO_UNITS
       const mesh = new THREE.Mesh(
         new THREE.BoxGeometry(width, depth, length),
-        new THREE.MeshStandardMaterial({ color: itemColour(groupOf[i]), transparent: true })
+        new THREE.MeshStandardMaterial({ color: itemColour(groups[groupOf[i]]!.colourIndex), transparent: true })
       )
       mesh.position.set(
         item.position.x * MM_TO_UNITS + width / 2 - BOX.width / 2,
@@ -88,6 +88,7 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
         item.position.z * MM_TO_UNITS + length / 2 - BOX.length / 2
       )
       mesh.userData.index = groupOf[i]
+      mesh.userData.itemIndex = i
       // Dark outline so neighbouring items (especially same-colour copies) stay distinct
       mesh.userData.outline = new THREE.LineSegments(
         new THREE.EdgesGeometry(mesh.geometry),
@@ -98,11 +99,13 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
       return mesh
     })
 
-    const selectItem = (index: number | null) => {
+    // pass an item to highlight just that one, otherwise the whole group lights up
+    const selectItem = (index: number | null, itemIndex: number | null = null) => {
       meshes.forEach((mesh) => {
         const material = mesh.material as THREE.MeshStandardMaterial
         const outline = (mesh.userData.outline as THREE.LineSegments).material as THREE.LineBasicMaterial
-        const isSelected = mesh.userData.index === index
+        const isSelected =
+          itemIndex !== null ? mesh.userData.itemIndex === itemIndex : mesh.userData.index === index
         const isFaded = index !== null && !isSelected
 
         // Glow in the item's own colour so it brightens without washing out
@@ -114,7 +117,7 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
         outline.color.setHex(isSelected ? SELECTED_OUTLINE_COLOUR : OUTLINE_COLOUR)
         outline.opacity = isFaded ? FADED_OPACITY : 1
       })
-      onSelect(index)
+      onSelect(index, index === null ? null : itemIndex)
     }
     selectItemRef.current = selectItem
 
@@ -201,7 +204,8 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
       raycaster.setFromCamera(pointer, camera)
       const hit = raycaster.intersectObjects(meshes, false)[0]
-      selectItem(hit ? (hit.object.userData.index as number) : null)
+      if (hit) selectItem(hit.object.userData.index as number, hit.object.userData.itemIndex as number)
+      else selectItem(null)
     }
     renderer.domElement.addEventListener('pointerdown', onPointerDown)
 

@@ -5,19 +5,21 @@ type ItemPanelProps = {
   readonly boxId: string
   readonly groups: ItemGroup[]
   readonly selected: number | null
-  readonly onSelect: (index: number | null) => void
+  /** index of the one item highlighted inside the selected group, if any */
+  readonly selectedItem: number | null
+  readonly onSelect: (group: number | null, item: number | null) => void
   readonly unpacked?: string[]
 }
 
 // Side panel: details of the selected group, prev/next, and the list of every group in the box
-function ItemPanel({ boxId, groups, selected, onSelect, unpacked }: ItemPanelProps) {
+function ItemPanel({ boxId, groups, selected, selectedItem, onSelect, unpacked }: ItemPanelProps) {
   const selectedGroup = selected !== null ? groups[selected] : undefined
 
   const stepSelection = (delta: number) => {
     const count = groups.length
     if (count === 0) return
     const current = selected ?? -1
-    onSelect((current + delta + count) % count)
+    onSelect((current + delta + count) % count, null)
   }
 
   return (
@@ -26,14 +28,14 @@ function ItemPanel({ boxId, groups, selected, onSelect, unpacked }: ItemPanelPro
       {selectedGroup && selected !== null ? (
         <div className="item-detail">
           <p className="item-detail__name">
-            {selectedGroup.itemId}
+            {selectedGroup.label}
             {selectedGroup.items.length > 1 && ` × ${selectedGroup.items.length}`}
           </p>
           <dl className="item-detail__specs">
             <dt>Colour:</dt>
             <dd className="item-detail__colour">
-              <span className="item-swatch" style={{ background: itemColourCss(selected) }} aria-hidden="true" />
-              {itemColourCss(selected)}
+              <span className="item-swatch" style={{ background: itemColourCss(selectedGroup.colourIndex) }} aria-hidden="true" />
+              {itemColourCss(selectedGroup.colourIndex)}
             </dd>
             <dt>Quantity:</dt>
             <dd>{selectedGroup.items.length}</dd>
@@ -43,12 +45,26 @@ function ItemPanel({ boxId, groups, selected, onSelect, unpacked }: ItemPanelPro
             </dd>
             <dt>{selectedGroup.items.length > 1 ? 'Positions:' : 'Position:'}</dt>
             <dd>
-              {selectedGroup.items.map((item, i) => (
-                <div key={i}>
-                  x {item.position.x} · y {item.position.y} · z {item.position.z} mm
-                  {item.rotation ? ` · ${item.rotation}°` : ''}
-                </div>
-              ))}
+              {selectedGroup.items.map((item, i) => {
+                const itemIndex = selectedGroup.itemIndices[i]!
+                const isPicked = selectedItem === itemIndex
+                // click one to highlight just that item, click again to go back to the whole group
+                return (
+                  <button
+                    key={itemIndex}
+                    type="button"
+                    className={`item-unit${isPicked ? ' is-selected' : ''}`}
+                    aria-pressed={isPicked}
+                    onClick={() => onSelect(selected, isPicked ? null : itemIndex)}
+                  >
+                    <span className="item-unit__name">{item.itemId}</span>
+                    <span className="item-unit__pos">
+                      x {item.position.x} · y {item.position.y} · z {item.position.z} mm
+                      {item.rotation ? ` · ${item.rotation}°` : ''}
+                    </span>
+                  </button>
+                )
+              })}
             </dd>
           </dl>
         </div>
@@ -72,11 +88,11 @@ function ItemPanel({ boxId, groups, selected, onSelect, unpacked }: ItemPanelPro
             <button
               type="button"
               className={`item-row${selected === g ? ' is-selected' : ''}`}
-              onClick={() => onSelect(selected === g ? null : g)}
+              onClick={() => onSelect(selected === g ? null : g, null)}
             >
-              <span className="item-swatch" style={{ background: itemColourCss(g) }} aria-hidden="true" />
+              <span className="item-swatch" style={{ background: itemColourCss(group.colourIndex) }} aria-hidden="true" />
               <span className="item-name">
-                {group.itemId}
+                {group.label}
                 {group.items.length > 1 && <span className="item-qty"> × {group.items.length}</span>}
               </span>
               <span className="item-dims">

@@ -264,3 +264,30 @@ describe('fromSolverOutput status', () => {
     expect(result.boxes.map((b) => b.boxId)).toEqual(['Crate', 'Crate-2'])
   })
 })
+
+describe('fromSolverOutput item references', () => {
+  it('keeps itemReference / item_reference so items can be coloured by ref', () => {
+    const result = fromSolverOutput({
+      results: [
+        {
+          boxReference: 'BOX',
+          width: 100,
+          length: 100,
+          depth: 100,
+          placements: [
+            { itemCode: 'Shoebox 1', itemReference: 'Shoebox', x: 0, y: 0, z: 0, width: 10, length: 10, depth: 10 },
+            { item_code: 'Shoebox 2', item_reference: 'Shoebox', x: 10, y: 0, z: 0, width: 10, length: 10, depth: 10 },
+            { itemCode: 'Mug', x: 20, y: 0, z: 0, width: 10, length: 10, depth: 10 },
+          ],
+        },
+      ],
+    })
+    const items = result.boxes[0]!.items
+    expect(items.map((i) => [i.itemId, i.itemReference])).toEqual([
+      ['Shoebox 1', 'Shoebox'],
+      ['Shoebox 2', 'Shoebox'],
+      ['Mug', undefined],
+    ])
+    expect('itemReference' in items[2]!).toBe(false)
+  })
+})

@@ -3,6 +3,8 @@ export type Dims = { width: number; depth: number; length: number }
 
 export type PackedItem = {
   itemId: string
+  // items with the same ref get the same colour
+  itemReference?: string
   dimensions: Dims
   position: Vec3
   rotation?: number

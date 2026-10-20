@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { findOverlaps } from '../../api/geometry'
-import { normalisePackingResult } from '../../api/normalise'
+import { normalisePackingResult, validatePackingResult } from '../../api/normalise'
+import { groupItems } from '../../utils/grouping'
 import { DEMO_RESULT } from '../demoResult'
 
 // The demo scene is what people see first in standalone mode, so it should be a valid, clean packing
@@ -18,7 +19,11 @@ describe('DEMO_RESULT', () => {
   })
 
   it('keeps every item inside the box', () => {
+    expect(() => validatePackingResult(DEMO_RESULT)).not.toThrow()
     for (const item of box.items) {
+      expect(item.dimensions.width).toBeGreaterThan(0)
+      expect(item.dimensions.depth).toBeGreaterThan(0)
+      expect(item.dimensions.length).toBeGreaterThan(0)
       expect(item.position.x).toBeGreaterThanOrEqual(0)
       expect(item.position.y).toBeGreaterThanOrEqual(0)
       expect(item.position.z).toBeGreaterThanOrEqual(0)
@@ -26,6 +31,19 @@ describe('DEMO_RESULT', () => {
       expect(item.position.y + item.dimensions.depth).toBeLessThanOrEqual(box.dimensions.depth)
       expect(item.position.z + item.dimensions.length).toBeLessThanOrEqual(box.dimensions.length)
     }
+  })
+
+  it('gives every item an item ref', () => {
+    for (const item of box.items) {
+      expect(item.itemReference).toBeTruthy()
+    }
+  })
+
+  it('puts the Novel and Cookbook in one row since they share the BOOK ref', () => {
+    const groups = groupItems(box.items)
+    const books = groups.find((g) => g.label === 'Novel, Cookbook')!
+    expect(books.items).toHaveLength(2)
+    expect(new Set(groups.map((g) => g.colourIndex)).size).toBe(5)
   })
 
   it('passes through the normaliser unchanged', () => {

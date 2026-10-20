@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { PackingResult } from '../types/packing'
 import { DEMO_RESULT } from '../demo/demoResult'
+import { validatePackingResult } from '../api/normalise'
 
 async function fetchResult(path: string) {
   let token: string | null = null
@@ -50,5 +51,15 @@ export function usePackingResult(resultProp: PackingResult | undefined, orderId:
     }
   }, [resultProp, orderId, apiBase])
 
-  return { result, loading, error }
+  // dont show results with bad sizes or items outside the box
+  const checked = useMemo(() => {
+    if (!result) return { result, error: '' }
+    try {
+      return { result: validatePackingResult(result), error: '' }
+    } catch (err) {
+      return { result: null, error: (err as Error).message }
+    }
+  }, [result])
+
+  return { result: checked.result, loading, error: error || checked.error }
 }

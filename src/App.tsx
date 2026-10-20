@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import type { PackingResult } from './types/packing'
 import { usePackingResult } from './packing/usePackingResult'
@@ -19,15 +19,23 @@ type AppProps = {
 }
 
 function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
-  const selectItemRef = useRef<(index: number | null) => void>(() => {})
+  const selectItemRef = useRef<(group: number | null, item?: number | null) => void>(() => {})
   const [selected, setSelected] = useState<number | null>(null)
+  const [selectedItem, setSelectedItem] = useState<number | null>(null)
   const [boxIndex, setBoxIndex] = useState(0)
   const { result, loading, error } = usePackingResult(resultProp, orderId, apiBase)
 
   useEffect(() => {
     setBoxIndex(0)
     setSelected(null)
+    setSelectedItem(null)
   }, [result])
+
+  // useCallback so the 3D scene doesnt get rebuilt every render
+  const handleSelect = useCallback((group: number | null, item: number | null) => {
+    setSelected(group)
+    setSelectedItem(item)
+  }, [])
 
   const box = result?.boxes?.[boxIndex]
   const groups = useMemo(() => groupItems(box?.items ?? []), [box])
@@ -51,12 +59,13 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
 
       {box && (
         <div className="app-body">
-          <VisualiserCanvas box={box} groups={groups} selectItemRef={selectItemRef} onSelect={setSelected} />
+          <VisualiserCanvas box={box} groups={groups} selectItemRef={selectItemRef} onSelect={handleSelect} />
           <ItemPanel
             boxId={box.boxId}
             groups={groups}
             selected={selected}
-            onSelect={(index) => selectItemRef.current(index)}
+            selectedItem={selectedItem}
+            onSelect={(group, item) => selectItemRef.current(group, item)}
             unpacked={result.unpacked}
           />
         </div>

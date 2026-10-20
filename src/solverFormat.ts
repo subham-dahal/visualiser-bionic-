@@ -73,6 +73,11 @@ export function uniquifyBoxIds(boxes: PackedBox[]): PackedBox[] {
   })
 }
 
+function withReference(placement: SolverPlacement): { itemReference?: string } {
+  const itemReference = firstString(placement.itemReference, placement.item_reference)
+  return itemReference === undefined ? {} : { itemReference }
+}
+
 function placementItemId(placement: SolverPlacement, index: number, boxId: string): string {
   const itemId = firstString(
     placement.itemCode,
@@ -130,6 +135,7 @@ export function fromSolverOutput(raw: SolverOutput): PackingResult {
     const dimensions = outerDims(box) ?? deriveDims(placements, boxId)
     const items: PackedItem[] = placements.map((p, itemIndex) => ({
       itemId: placementItemId(p, itemIndex, boxId),
+      ...withReference(p),
       dimensions: { width: p.width, depth: p.depth, length: p.length },
       position: { x: p.x, y: p.y, z: p.z },
     }))

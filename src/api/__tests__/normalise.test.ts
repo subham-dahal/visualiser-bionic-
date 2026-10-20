@@ -165,3 +165,93 @@ describe('fixture packing integrity', () => {
     }
   })
 })
+
+// size and bounds tests
+describe('normalisePackingResult validates sizes and bounds', () => {
+  const portal = (box: unknown) => ({ status: 'success', boxes: [box] })
+  const crate = (items: unknown[], dimensions = { width: 600, depth: 300, length: 400 }) => ({
+    boxId: 'Crate-1',
+    dimensions,
+    items,
+  })
+  const item = (position: { x: number; y: number; z: number }, dimensions = { width: 100, depth: 100, length: 100 }) => ({
+    itemId: 'Mug',
+    dimensions,
+    position,
+  })
+
+  it.each([
+    ['negative width', { width: -600, depth: 300, length: 400 }, 'invalid width'],
+    ['negative depth', { width: 600, depth: -300, length: 400 }, 'invalid depth'],
+    ['negative length', { width: 600, depth: 300, length: -400 }, 'invalid length'],
+    ['zero width', { width: 0, depth: 300, length: 400 }, 'invalid width'],
+    ['NaN depth', { width: 600, depth: Number.NaN, length: 400 }, 'invalid depth'],
+  ])('rejects a box with %s', (_label, dimensions, message) => {
+    expect(() => normalisePackingResult(portal(crate([], dimensions)))).toThrow(NormaliseError)
+    expect(() => normalisePackingResult(portal(crate([], dimensions)))).toThrow(message)
+  })
+
+  it('rejects a box still using the old { w, h, d } keys', () => {
+    expect(() => normalisePackingResult(portal(crate([], { w: 600, h: 300, d: 400 } as never)))).toThrow(
+      'invalid width',
+    )
+  })
+
+  it('rejects an item with a negative size', () => {
+    const bad = item({ x: 0, y: 0, z: 0 }, { width: 100, depth: -50, length: 100 })
+    expect(() => normalisePackingResult(portal(crate([bad])))).toThrow('Item "Mug" (#0) in box "Crate-1" has an invalid depth')
+  })
+
+  it.each([
+    ['x', { x: -10, y: 0, z: 0 }],
+    ['y', { x: 0, y: -10, z: 0 }],
+    ['z', { x: 0, y: 0, z: -10 }],
+  ])('rejects an item starting below 0 on %s', (axis, position) => {
+    expect(() => normalisePackingResult(portal(crate([item(position)])))).toThrow(`${axis} = -10 is below 0`)
+  })
+
+  it.each([
+    ['width', { x: 550, y: 0, z: 0 }, 'x + width = 650 exceeds box width 600'],
+    ['depth', { x: 0, y: 250, z: 0 }, 'y + depth = 350 exceeds box depth 300'],
+    ['length', { x: 0, y: 0, z: 350 }, 'z + length = 450 exceeds box length 400'],
+  ])('rejects an item extending past the box %s', (_axis, position, message) => {
+    expect(() => normalisePackingResult(portal(crate([item(position)])))).toThrow(message)
+  })
+
+  it('accepts items touching every wall exactly', () => {
+    const corners = [item({ x: 0, y: 0, z: 0 }), item({ x: 500, y: 200, z: 300 })]
+    expect(normalisePackingResult(portal(crate(corners))).boxes[0]?.items).toHaveLength(2)
+  })
+
+  it('tolerates tiny floating point overshoot', () => {
+    const nearlyFlush = item({ x: 500.005, y: 0, z: 0 })
+    expect(() => normalisePackingResult(portal(crate([nearlyFlush])))).not.toThrow()
+  })
+
+  it('collects every problem into NormaliseError.issues', () => {
+    const items = [item({ x: -10, y: 0, z: 0 }), item({ x: 0, y: 250, z: 0 })]
+    try {
+      normalisePackingResult(portal(crate(items)))
+      expect.unreachable()
+    } catch (err) {
+      expect(err).toBeInstanceOf(NormaliseError)
+      expect((err as NormaliseError).issues).toHaveLength(2)
+      expect((err as NormaliseError).message).toMatch(/^Invalid packing result\. 2 packing problems found/)
+    }
+  })
+
+  it('also validates solver payloads', () => {
+    const solver = {
+      results: [
+        {
+          boxReference: 'BOX-1',
+          width: 100,
+          length: 100,
+          depth: 100,
+          placements: [{ itemCode: 'A', x: 80, y: 0, z: 0, width: 50, length: 10, depth: 10 }],
+        },
+      ],
+    }
+    expect(() => normalisePackingResult(solver)).toThrow('x + width = 130 exceeds box width 100')
+  })
+})

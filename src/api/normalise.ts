@@ -1,11 +1,76 @@
 import { fromSolverOutput, uniquifyBoxIds, type SolverOutput } from '../solverFormat'
-import type { PackedBox, PackingResult } from '../types/packing'
+import type { Dims, PackedBox, PackingResult } from '../types/packing'
 
 export class NormaliseError extends Error {
-  constructor(message: string) {
+  // list of errors
+  issues: string[]
+
+  constructor(message: string, issues: string[] = []) {
     super(message)
     this.name = 'NormaliseError'
+    this.issues = issues
   }
+}
+
+// small wiggle room for rounding
+const BOUNDS_EPSILON = 0.01
+
+const AXES = [
+  { pos: 'x', size: 'width' },
+  { pos: 'y', size: 'depth' },
+  { pos: 'z', size: 'length' },
+] as const
+
+function isPositiveNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+}
+
+function dimsIssues(dims: Dims | undefined, label: string): string[] {
+  return AXES.filter(({ size }) => !isPositiveNumber(dims?.[size])).map(
+    ({ size }) => `${label} has an invalid ${size} (${String(dims?.[size])}); sizes must be positive numbers`,
+  )
+}
+
+// check sizes arent negative and items are inside the box (0,0,0 is bottom left)
+export function validatePackingResult(result: PackingResult): PackingResult {
+  const issues: string[] = []
+
+  for (const box of result.boxes ?? []) {
+    const boxIssues = dimsIssues(box.dimensions, `Box "${box.boxId}"`)
+    issues.push(...boxIssues)
+
+    const items = box.items ?? []
+    items.forEach((item, index) => {
+      const label = `Item "${item.itemId}" (#${index}) in box "${box.boxId}"`
+      const itemIssues = dimsIssues(item.dimensions, label)
+      issues.push(...itemIssues)
+
+      for (const { pos, size } of AXES) {
+        const start = item.position?.[pos]
+        if (typeof start !== 'number' || !Number.isFinite(start)) {
+          issues.push(`${label} has an invalid ${pos} position (${String(start)})`)
+          continue
+        }
+        if (start < -BOUNDS_EPSILON) {
+          issues.push(`${label} starts outside the box: ${pos} = ${start} is below 0`)
+        }
+        // skip if sizes are already broken
+        if (boxIssues.length > 0 || itemIssues.length > 0) continue
+        const end = start + item.dimensions[size]
+        if (end > box.dimensions[size] + BOUNDS_EPSILON) {
+          issues.push(
+            `${label} extends outside the box: ${pos} + ${size} = ${end} exceeds box ${size} ${box.dimensions[size]}`,
+          )
+        }
+      }
+    })
+  }
+
+  if (issues.length > 0) {
+    const summary = issues.length === 1 ? issues[0] : `${issues.length} packing problems found: ${issues[0]}; …`
+    throw new NormaliseError(`Invalid packing result. ${summary}`, issues)
+  }
+  return result
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -41,11 +106,11 @@ export function normalisePackingResult(raw: unknown): PackingResult {
   }
 
   if (Array.isArray(raw.boxes)) {
-    return fromPortalResult(raw)
+    return validatePackingResult(fromPortalResult(raw))
   }
 
   if (Array.isArray(raw.results)) {
-    return fromSolverOutput(raw as SolverOutput)
+    return validatePackingResult(fromSolverOutput(raw as SolverOutput))
   }
 
   const keys = Object.keys(raw)
