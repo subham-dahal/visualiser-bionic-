@@ -5,7 +5,8 @@ export type PackedItem = {
   itemId: string
   dimensions: Dims
   position: Vec3
-  rotation?: number
+  /** Axis order the item was rotated into, as sent by Portal (e.g. "XYZ", "ZXY"). */
+  rotation?: string
 }
 
 export type PackedBox = {

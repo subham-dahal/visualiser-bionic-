@@ -46,7 +46,7 @@ function ItemPanel({ boxId, groups, selected, onSelect, unpacked }: ItemPanelPro
               {selectedGroup.items.map((item, i) => (
                 <div key={i}>
                   x {item.position.x} · y {item.position.y} · z {item.position.z} mm
-                  {item.rotation ? ` · ${item.rotation}°` : ''}
+                  {item.rotation ? ` · rotation ${item.rotation}` : ''}
                 </div>
               ))}
             </dd>
