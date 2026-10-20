@@ -165,3 +165,37 @@ describe('fixture packing integrity', () => {
     }
   })
 })
+
+// Portal wraps results and sends rotation as an axis-order string
+describe('normalisePackingResult envelopes and rotation', () => {
+  it('unwraps a { result: ... } envelope around a portal payload', () => {
+    const result = normalisePackingResult({ result: portalResult })
+    expect(result.boxes.map((b) => b.boxId)).toEqual(['Crate-1', 'Crate-2'])
+  })
+
+  it('unwraps a { result: ... } envelope around a raw solver payload', () => {
+    const result = normalisePackingResult({ result: solverCamel })
+    expect(result.boxes).toHaveLength(2)
+  })
+
+  it('still rejects an envelope whose result is not an object', () => {
+    expect(() => normalisePackingResult({ result: 'nope' })).toThrow(NormaliseError)
+  })
+
+  it('keeps a string rotation like "XYZ" from portal unchanged', () => {
+    const result = normalisePackingResult({
+      status: 'success',
+      source: 'bionic-solver',
+      boxes: [
+        {
+          boxId: 'Crate',
+          dimensions: { width: 600, depth: 300, length: 400 },
+          items: [
+            { itemId: 'MUG', dimensions: { width: 95, depth: 95, length: 115 }, position: { x: 0, y: 0, z: 0 }, rotation: 'ZXY' },
+          ],
+        },
+      ],
+    })
+    expect(result.boxes[0].items[0].rotation).toBe('ZXY')
+  })
+})

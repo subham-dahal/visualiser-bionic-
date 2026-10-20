@@ -5,18 +5,28 @@ import type { Dims, PackedBox, PackedItem, PackingResult } from './types/packing
  * both are live in production. Unknown top-level fields (algorithmUs, serverUs, …)
  * are ignored.
  */
-export type SolverPlacement = {
+/** An item record as FitSolver returns it, both inside a placement and in `failed`. */
+export type SolverItem = {
   itemCode?: string
   item_code?: string
   itemReference?: string
   item_reference?: string
-  x: number
-  y: number
-  z: number
   width: number
   length: number
   depth: number
+  weight?: number
 }
+
+/**
+ * Before solver commit 5796ed5 (14 Oct) a placement was flat: { itemCode, x, y, z, width, … }.
+ * Since then the item record is nested: { x, y, z, item: { itemCode, width, … } }.
+ * In both, width/length/depth are the item's size as placed (after any rotation).
+ */
+export type SolverPlacement =
+  | (SolverItem & { x: number; y: number; z: number; item?: undefined })
+  | { x: number; y: number; z: number; item: SolverItem }
+
+type FlatPlacement = SolverItem & { x: number; y: number; z: number }
 
 export type SolverBoxResult = {
   boxReference?: string
@@ -35,7 +45,20 @@ export type SolverBoxResult = {
 
 export type SolverOutput = {
   results: SolverBoxResult[]
-  failed?: string[]
+  /** Item codes (older solver) or full item records (since 14 Oct). */
+  failed?: Array<string | SolverItem>
+}
+
+function flattenPlacement(p: SolverPlacement): FlatPlacement {
+  if (p.item) return { ...p.item, x: p.x, y: p.y, z: p.z }
+  return p
+}
+
+function failedItemId(entry: string | SolverItem, index: number): string {
+  if (typeof entry === 'string') return entry
+  return (
+    firstString(entry.itemCode, entry.item_code, entry.itemReference, entry.item_reference) ?? `unpacked-${index}`
+  )
 }
 
 function presentDim(value: unknown): number | undefined {
@@ -73,7 +96,7 @@ export function uniquifyBoxIds(boxes: PackedBox[]): PackedBox[] {
   })
 }
 
-function placementItemId(placement: SolverPlacement, index: number, boxId: string): string {
+function placementItemId(placement: FlatPlacement, index: number, boxId: string): string {
   const itemId = firstString(
     placement.itemCode,
     placement.item_code,
@@ -96,7 +119,7 @@ function outerDims(box: SolverBoxResult): Dims | undefined {
   return { width, depth, length }
 }
 
-function deriveDims(placements: SolverPlacement[], boxId: string): Dims {
+function deriveDims(placements: FlatPlacement[], boxId: string): Dims {
   let width = 0
   let depth = 0
   let length = 0
@@ -121,10 +144,10 @@ function deriveDims(placements: SolverPlacement[], boxId: string): Dims {
  */
 export function fromSolverOutput(raw: SolverOutput): PackingResult {
   const results = raw.results ?? []
-  const failed = raw.failed ?? []
+  const failed = (raw.failed ?? []).map(failedItemId)
 
   const boxes: PackedBox[] = results.map((box, boxIndex) => {
-    const placements = box.placements ?? []
+    const placements = (box.placements ?? []).map(flattenPlacement)
     const boxId =
       firstString(box.boxReference, box.box_reference) ?? `box-${boxIndex}`
     const dimensions = outerDims(box) ?? deriveDims(placements, boxId)

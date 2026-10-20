@@ -1,0 +1,169 @@
+{
+  "results": [
+    {
+      "boxReference": "Carton-L",
+      "width": 600,
+      "length": 400,
+      "depth": 300,
+      "placements": [
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "item": {
+            "itemCode": "MONITOR",
+            "itemReference": "MONITOR",
+            "width": 550,
+            "length": 350,
+            "depth": 60,
+            "weight": 5
+          }
+        },
+        {
+          "x": 0,
+          "y": 60,
+          "z": 0,
+          "item": {
+            "itemCode": "SHOEBOX",
+            "itemReference": "SHOEBOX",
+            "width": 340,
+            "length": 210,
+            "depth": 120,
+            "weight": 1.2000000476837158
+          }
+        },
+        {
+          "x": 340,
+          "y": 60,
+          "z": 0,
+          "item": {
+            "itemCode": "SHOEBOX",
+            "itemReference": "SHOEBOX",
+            "width": 210,
+            "length": 340,
+            "depth": 120,
+            "weight": 1.2000000476837158
+          }
+        },
+        {
+          "x": 0,
+          "y": 60,
+          "z": 210,
+          "item": {
+            "itemCode": "KETTLE",
+            "itemReference": "KETTLE",
+            "width": 200,
+            "length": 160,
+            "depth": 220,
+            "weight": 1.5
+          }
+        },
+        {
+          "x": 200,
+          "y": 60,
+          "z": 210,
+          "item": {
+            "itemCode": "BOOK",
+            "itemReference": "BOOK",
+            "width": 35,
+            "length": 145,
+            "depth": 205,
+            "weight": 0.6000000238418579
+          }
+        },
+        {
+          "x": 235,
+          "y": 60,
+          "z": 210,
+          "item": {
+            "itemCode": "BOOK",
+            "itemReference": "BOOK",
+            "width": 35,
+            "length": 145,
+            "depth": 205,
+            "weight": 0.6000000238418579
+          }
+        },
+        {
+          "x": 270,
+          "y": 60,
+          "z": 210,
+          "item": {
+            "itemCode": "BOOK",
+            "itemReference": "BOOK",
+            "width": 35,
+            "length": 145,
+            "depth": 205,
+            "weight": 0.6000000238418579
+          }
+        },
+        {
+          "x": 340,
+          "y": 180,
+          "z": 0,
+          "item": {
+            "itemCode": "MUG",
+            "itemReference": "MUG",
+            "width": 95,
+            "length": 115,
+            "depth": 95,
+            "weight": 0.4000000059604645
+          }
+        },
+        {
+          "x": 340,
+          "y": 180,
+          "z": 115,
+          "item": {
+            "itemCode": "MUG",
+            "itemReference": "MUG",
+            "width": 95,
+            "length": 115,
+            "depth": 95,
+            "weight": 0.4000000059604645
+          }
+        },
+        {
+          "x": 340,
+          "y": 180,
+          "z": 230,
+          "item": {
+            "itemCode": "MUG",
+            "itemReference": "MUG",
+            "width": 95,
+            "length": 115,
+            "depth": 95,
+            "weight": 0.4000000059604645
+          }
+        },
+        {
+          "x": 435,
+          "y": 180,
+          "z": 230,
+          "item": {
+            "itemCode": "MUG",
+            "itemReference": "MUG",
+            "width": 95,
+            "length": 115,
+            "depth": 95,
+            "weight": 0.4000000059604645
+          }
+        }
+      ],
+      "totalWeight": 12.300000190734863,
+      "utilization": 0.5972031354904175
+    }
+  ],
+  "failed": [
+    {
+      "itemCode": "PIANO",
+      "itemReference": "PIANO",
+      "width": 1500,
+      "length": 1500,
+      "depth": 1500,
+      "weight": 200
+    }
+  ],
+  "algorithmUs": 464,
+  "serverUs": 4450
+}
