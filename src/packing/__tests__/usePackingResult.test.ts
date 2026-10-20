@@ -104,9 +104,12 @@ describe('usePackingResult fetching', () => {
     vi.stubGlobal('fetch', fetchMock)
     renderHook(() => usePackingResult(undefined, 'ORD-20931', API_BASE))
     await waitFor(() => expect(fetchMock).toHaveBeenCalled())
-    expect(fetchMock).toHaveBeenCalledWith(expect.any(String), {
-      headers: { Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyLTQyIn0.sig' },
-    })
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyLTQyIn0.sig' },
+      }),
+    )
   })
 
   it('sends no headers when no token is stored', async () => {
@@ -114,7 +117,7 @@ describe('usePackingResult fetching', () => {
     vi.stubGlobal('fetch', fetchMock)
     renderHook(() => usePackingResult(undefined, 'ORD-20931', API_BASE))
     await waitFor(() => expect(fetchMock).toHaveBeenCalled())
-    expect(fetchMock).toHaveBeenCalledWith(expect.any(String), { headers: undefined })
+    expect(fetchMock).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ headers: {} }))
   })
 
   it('still fetches without auth when localStorage throws', async () => {
@@ -125,7 +128,7 @@ describe('usePackingResult fetching', () => {
     vi.stubGlobal('fetch', fetchMock)
     const { result } = renderHook(() => usePackingResult(undefined, 'ORD-20931', API_BASE))
     await waitFor(() => expect(result.current.result).toEqual(PORTAL))
-    expect(fetchMock).toHaveBeenCalledWith(expect.any(String), { headers: undefined })
+    expect(fetchMock).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ headers: {} }))
   })
 })
 
@@ -245,10 +248,9 @@ describe('usePackingResult async ordering', () => {
     expect(result.current.result).toEqual(hostResult)
   })
 
-  // BUG: if a host result (or no orderId) replaces an in-flight fetch, the cancelled
-  // request never clears `loading`, so App.tsx stays on "Loading packing result…".
-  // Marked as expected-to-fail; remove `.fails` once usePackingResult resets loading.
-  it.fails('clears loading when a host result replaces an in-flight fetch', async () => {
+  // Regression: a host result replacing an in-flight fetch used to leave `loading` stuck,
+  // so App.tsx stayed on "Loading packing result…".
+  it('clears loading when a host result replaces an in-flight fetch', async () => {
     const { pending } = deferredFetch()
     const { result, rerender } = renderHook(
       ({ res }: { res?: PackingResult }) => usePackingResult(res, 'ORD-20931', API_BASE),
@@ -257,5 +259,76 @@ describe('usePackingResult async ordering', () => {
     rerender({ res: hostResult })
     await act(async () => pending[0]!.resolve(jsonResponse(200, PORTAL)))
     expect(result.current.loading).toBe(false)
+  })
+})
+
+// The hook delegates to api/client.ts, so live responses get normalised and time out
+describe('usePackingResult uses the shared API client', () => {
+  it('normalises a raw solver response instead of passing it through', async () => {
+    const solver = (await import('../../fixtures/solver-camel.json')).default
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(200, solver)))
+    const { result } = renderHook(() => usePackingResult(undefined, 'ORD-20931', API_BASE))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.error).toBe('')
+    expect(result.current.result?.boxes.length).toBe(2)
+    expect(result.current.result?.boxes.map((b) => b.boxId)).toEqual(['Crate', 'Crate-2'])
+  })
+
+  it('surfaces a NormaliseError for an unrecognised 200 body', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(200, { foo: 1 })))
+    const { result } = renderHook(() => usePackingResult(undefined, 'ORD-20931', API_BASE))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.error).toMatch(/Unrecognised packing payload/)
+    expect(result.current.result).toBeNull()
+  })
+
+  it('times out a request that never responds', async () => {
+    vi.useFakeTimers()
+    try {
+      deferredFetch()
+      const { result } = renderHook(() => usePackingResult(undefined, 'ORD-20931', API_BASE))
+      expect(result.current.loading).toBe(true)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(8000)
+      })
+      expect(result.current.loading).toBe(false)
+      expect(result.current.error).toBe('Request timed out after 8s')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('switches back to the demo scene when orderId is cleared mid-fetch', async () => {
+    deferredFetch()
+    const { result, rerender } = renderHook(({ id }: { id?: string }) => usePackingResult(undefined, id, API_BASE), {
+      initialProps: { id: 'ORD-20931' } as { id?: string },
+    })
+    expect(result.current.loading).toBe(true)
+    rerender({ id: undefined })
+    expect(result.current).toEqual({ result: DEMO_RESULT, loading: false, error: '' })
+  })
+})
+
+// FitPortal passes its own result object; it must be normalised, not trusted as-is
+describe('usePackingResult host results from FitPortal', () => {
+  it("accepts Portal's { w, h, d } dimensions", async () => {
+    const portalLive = (await import('../../fixtures/portal-live.json')).default
+    const { result } = renderHook(() => usePackingResult(portalLive, undefined, API_BASE))
+    expect(result.current.error).toBe('')
+    expect(result.current.result?.boxes[0]?.dimensions).toEqual({ width: 600, depth: 300, length: 400 })
+  })
+
+  it('shows an error instead of crashing on a malformed host result', () => {
+    const { result } = renderHook(() => usePackingResult({ nonsense: true }, undefined, API_BASE))
+    expect(result.current.loading).toBe(false)
+    expect(result.current.result).toBeNull()
+    expect(result.current.error).toMatch(/Unrecognised packing payload/)
+  })
+
+  it('keeps the same result object across re-renders (no reset loop in App)', () => {
+    const { result, rerender } = renderHook(() => usePackingResult(hostResult, undefined, API_BASE))
+    const first = result.current.result
+    rerender()
+    expect(result.current.result).toBe(first)
   })
 })

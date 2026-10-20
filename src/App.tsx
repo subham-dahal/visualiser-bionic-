@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import './App.css'
 import type { PackingResult } from './types/packing'
 import { usePackingResult } from './packing/usePackingResult'
@@ -24,10 +24,14 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
   const [boxIndex, setBoxIndex] = useState(0)
   const { result, loading, error } = usePackingResult(resultProp, orderId, apiBase)
 
-  useEffect(() => {
+  // A new result starts back on the first box with nothing selected.
+  // Adjusted during render rather than in an effect, so there's no frame showing a stale box index.
+  const [prevResult, setPrevResult] = useState(result)
+  if (result !== prevResult) {
+    setPrevResult(result)
     setBoxIndex(0)
     setSelected(null)
-  }, [result])
+  }
 
   const box = result?.boxes?.[boxIndex]
   const groups = useMemo(() => groupItems(box?.items ?? []), [box])

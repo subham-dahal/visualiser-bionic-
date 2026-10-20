@@ -365,3 +365,33 @@ describe('fetchPackingResult concurrent requests', () => {
     expect(b.status).toBe('fulfilled')
   })
 })
+
+// Messages shown to the user on the StatusScreen
+describe('fetchPackingResult user-facing messages', () => {
+  it('uses a generic "Request failed (status)" when there is no statusText and no JSON error', async () => {
+    // HTTP/2 responses have an empty statusText, so this is the common case in production
+    stubFetch(async () =>
+      errorResponse(503, '', async () => {
+        throw new SyntaxError('Unexpected token <')
+      }),
+    )
+    const error = (await fetchPackingResult('ORD-20931', { apiBase: '' }).catch((e: unknown) => e)) as ApiError
+    expect(error.message).toBe('Request failed (503).')
+    expect(error.status).toBe(503)
+  })
+
+  it('reports the actual timeout duration, not a hard-coded 8s', async () => {
+    vi.useFakeTimers()
+    stubFetch(() => new Promise(() => {}))
+    const promise = fetchPackingResult('ORD-20931', { apiBase: '', timeoutMs: 2000 })
+    const assertion = expect(promise).rejects.toThrow('Request timed out after 2s')
+    await vi.advanceTimersByTimeAsync(2000)
+    await assertion
+  })
+
+  it('unwraps a { result: ... } envelope from Portal', async () => {
+    stubFetch(async () => okResponse({ result: portalResult }))
+    const result = await fetchPackingResult('ORD-20931', { apiBase: '' })
+    expect(result.boxes).toHaveLength(2)
+  })
+})
