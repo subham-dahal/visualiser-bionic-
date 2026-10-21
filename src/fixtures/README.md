@@ -7,9 +7,9 @@
 | `solver-camel-nodims.json` | FitSolver camelCase | From a request/response log (TODO: confirm source/date with Vaibhav) | Box `width`/`length`/`depth` are 0, and the placement has no `itemCode` field at all. Both are edge cases the normaliser must handle without crashing. |
 | `portal-result.json` | FitPortal `PackingResult` | NOT a real sample from FitPortal. Manually derived from `solver-camel.json` by applying the axis mapping noted below, as a stand-in until Portal's actual output is confirmed | The 600×300×400 box dimensions are inferred (source gave 0), chosen as the smallest round-number box that both bounds every item's placement and exactly reproduces the reported utilization value for both boxes. Treat as a provisional placeholder, replace once we have a real Portal sample. |
 
-## Open question
+## Axis convention (resolved)
 
-In `solver-camel.json`, reading the solver's `y` as the vertical axis (with `depth` as each item's height) puts every item flush against its neighbour with zero overlap — position identity (`x→x`, `y→y`, `z→z`), dimensions `{w: width, h: depth, d: length}`. `solverFormat.ts` currently assumes `z` is vertical instead. Not fixed yet in code — that's the next step, and is the likely cause of the box-overlap bug in the week 6 minutes.
+Solver `y` is vertical: positions pass straight through (`x→x`, `y→y`, `z→z`) and dimensions map to `{ width, depth, length }`, with `depth` as height. Confirmed with Portal (Asma, 19 Oct): X = width, Y = depth (vertical), Z = length.
 
 ## API client
 
@@ -18,4 +18,15 @@ In `solver-camel.json`, reading the solver's `y` as the vertical axis (with `dep
 - Env var: `VITE_PORTAL_API_BASE` (default `http://localhost:4000`)
 - The Vite proxy in `vite.config.ts` forwards `/api/*` to the Portal Express server during local dev
 - Portal confirmed: `GET /api/orders/:id/result` returns the Portal shape (`boxes[]` at top level); auth is Bearer JWT from localStorage key `fitportal.token`
-- `rotation` field from Portal is a string e.g. `"XYZ"` — `PackedItem.rotation` is currently typed as `number`, needs fixing before rotation is used in the render
+- `rotation` field from Portal is a string e.g. `"XYZ"` — `PackedItem.rotation` is typed as `string` to match. The renderer doesn't apply it yet; dimensions are already post-rotation.
+
+## Live fixtures (captured 20 Oct 2026)
+
+- `solver-live.json`: real output from `@bionic/solver` at commit `f65cafe` (18 Oct, ExtremePoint, Linux prebuilt binary).
+  Order: Carton-S 400×300×250 and Carton-L 600×400×300; SHOEBOX ×2, KETTLE, BOOK ×3, MUG ×4, MONITOR, PIANO (too big, so it ends up in `failed`).
+  This is the **nested** placement shape introduced in solver commit `5796ed5` (14 Oct): `{ x, y, z, item: { itemCode, width, length, depth, … } }`,
+  and `failed` is a list of item records rather than strings. Item sizes inside `placement.item` are the placed (post-rotation) sizes.
+- `portal-live.json`: the same result run through FitPortal `main`'s own `normaliseSolverResponse` (`server/src/services/solverClient.js` @ `c4dc615`),
+  i.e. exactly the `result` prop Portal passes to `<FitVisualiser />`. Portal main pins the older flat solver (`94f2057`), so the placements were
+  fed in flat form. Dimensions are `{ w, h, d }` with `h` = solver depth (vertical, y) and `d` = solver length (z); `rotation` is always `"XYZ"`.
+- `live.test.ts` checks that both fixtures produce the identical scene, which is the Portal ↔ visualiser axis contract.

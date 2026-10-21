@@ -1,0 +1,201 @@
+{
+  "status": "success",
+  "message": "1 item(s) could not be packed.",
+  "boxes": [
+    {
+      "boxId": "Carton-L",
+      "dimensions": {
+        "w": 600,
+        "h": 300,
+        "d": 400
+      },
+      "totalWeight": 12.300000190734863,
+      "utilization": 0.5972031354904175,
+      "items": [
+        {
+          "itemId": "MONITOR",
+          "itemCode": "MONITOR",
+          "itemReference": "MONITOR",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotation": "XYZ",
+          "dimensions": {
+            "w": 550,
+            "h": 60,
+            "d": 350
+          }
+        },
+        {
+          "itemId": "SHOEBOX",
+          "itemCode": "SHOEBOX",
+          "itemReference": "SHOEBOX",
+          "position": {
+            "x": 0,
+            "y": 60,
+            "z": 0
+          },
+          "rotation": "XYZ",
+          "dimensions": {
+            "w": 340,
+            "h": 120,
+            "d": 210
+          }
+        },
+        {
+          "itemId": "SHOEBOX",
+          "itemCode": "SHOEBOX",
+          "itemReference": "SHOEBOX",
+          "position": {
+            "x": 340,
+            "y": 60,
+            "z": 0
+          },
+          "rotation": "XYZ",
+          "dimensions": {
+            "w": 210,
+            "h": 120,
+            "d": 340
+          }
+        },
+        {
+          "itemId": "KETTLE",
+          "itemCode": "KETTLE",
+          "itemReference": "KETTLE",
+          "position": {
+            "x": 0,
+            "y": 60,
+            "z": 210
+          },
+          "rotation": "XYZ",
+          "dimensions": {
+            "w": 200,
+            "h": 220,
+            "d": 160
+          }
+        },
+        {
+          "itemId": "BOOK",
+          "itemCode": "BOOK",
+          "itemReference": "BOOK",
+          "position": {
+            "x": 200,
+            "y": 60,
+            "z": 210
+          },
+          "rotation": "XYZ",
+          "dimensions": {
+            "w": 35,
+            "h": 205,
+            "d": 145
+          }
+        },
+        {
+          "itemId": "BOOK",
+          "itemCode": "BOOK",
+          "itemReference": "BOOK",
+          "position": {
+            "x": 235,
+            "y": 60,
+            "z": 210
+          },
+          "rotation": "XYZ",
+          "dimensions": {
+            "w": 35,
+            "h": 205,
+            "d": 145
+          }
+        },
+        {
+          "itemId": "BOOK",
+          "itemCode": "BOOK",
+          "itemReference": "BOOK",
+          "position": {
+            "x": 270,
+            "y": 60,
+            "z": 210
+          },
+          "rotation": "XYZ",
+          "dimensions": {
+            "w": 35,
+            "h": 205,
+            "d": 145
+          }
+        },
+        {
+          "itemId": "MUG",
+          "itemCode": "MUG",
+          "itemReference": "MUG",
+          "position": {
+            "x": 340,
+            "y": 180,
+            "z": 0
+          },
+          "rotation": "XYZ",
+          "dimensions": {
+            "w": 95,
+            "h": 95,
+            "d": 115
+          }
+        },
+        {
+          "itemId": "MUG",
+          "itemCode": "MUG",
+          "itemReference": "MUG",
+          "position": {
+            "x": 340,
+            "y": 180,
+            "z": 115
+          },
+          "rotation": "XYZ",
+          "dimensions": {
+            "w": 95,
+            "h": 95,
+            "d": 115
+          }
+        },
+        {
+          "itemId": "MUG",
+          "itemCode": "MUG",
+          "itemReference": "MUG",
+          "position": {
+            "x": 340,
+            "y": 180,
+            "z": 230
+          },
+          "rotation": "XYZ",
+          "dimensions": {
+            "w": 95,
+            "h": 95,
+            "d": 115
+          }
+        },
+        {
+          "itemId": "MUG",
+          "itemCode": "MUG",
+          "itemReference": "MUG",
+          "position": {
+            "x": 435,
+            "y": 180,
+            "z": 230
+          },
+          "rotation": "XYZ",
+          "dimensions": {
+            "w": 95,
+            "h": 95,
+            "d": 115
+          }
+        }
+      ]
+    }
+  ],
+  "unpacked": [
+    "PIANO"
+  ],
+  "algorithmUs": 464,
+  "serverUs": 4450,
+  "solverMs": 3,
+  "source": "bionic-solver"
+}

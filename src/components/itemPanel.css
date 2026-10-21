@@ -134,6 +134,40 @@
   color: #8b93a3;
 }
 
+/* one item inside the selected group, click to highlight just that one */
+.item-unit {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.5rem;
+  margin: 0 0 0.25rem;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid #1d212a;
+  background: #12151c;
+  color: inherit;
+  font: inherit;
+  font-size: 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.item-unit:hover {
+  border-color: #2a2f3a;
+}
+
+.item-unit.is-selected {
+  border-color: #ffffff;
+  background: #1d2638;
+}
+
+.item-unit__name {
+  font-weight: 600;
+}
+
+.item-unit__pos {
+  color: #8b93a3;
+}
+
 /* Note for items the solver could not fit. */
 .unpacked-note {
   margin: 0.75rem 0 0;

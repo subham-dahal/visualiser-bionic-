@@ -5,18 +5,28 @@ import type { Dims, PackedBox, PackedItem, PackingResult } from './types/packing
  * both are live in production. Unknown top-level fields (algorithmUs, serverUs, …)
  * are ignored.
  */
-export type SolverPlacement = {
+/** An item record as FitSolver returns it, both inside a placement and in `failed`. */
+export type SolverItem = {
   itemCode?: string
   item_code?: string
   itemReference?: string
   item_reference?: string
-  x: number
-  y: number
-  z: number
   width: number
   length: number
   depth: number
+  weight?: number
 }
+
+/**
+ * Before solver commit 5796ed5 (14 Oct) a placement was flat: { itemCode, x, y, z, width, … }.
+ * Since then the item record is nested: { x, y, z, item: { itemCode, width, … } }.
+ * In both, width/length/depth are the item's size as placed (after any rotation).
+ */
+export type SolverPlacement =
+  | (SolverItem & { x: number; y: number; z: number; item?: undefined })
+  | { x: number; y: number; z: number; item: SolverItem }
+
+type FlatPlacement = SolverItem & { x: number; y: number; z: number }
 
 export type SolverBoxResult = {
   boxReference?: string
@@ -35,7 +45,20 @@ export type SolverBoxResult = {
 
 export type SolverOutput = {
   results: SolverBoxResult[]
-  failed?: string[]
+  /** Item codes (older solver) or full item records (since 14 Oct). */
+  failed?: Array<string | SolverItem>
+}
+
+function flattenPlacement(p: SolverPlacement): FlatPlacement {
+  if (p.item) return { ...p.item, x: p.x, y: p.y, z: p.z }
+  return p
+}
+
+function failedItemId(entry: string | SolverItem, index: number): string {
+  if (typeof entry === 'string') return entry
+  return (
+    firstString(entry.itemCode, entry.item_code, entry.itemReference, entry.item_reference) ?? `unpacked-${index}`
+  )
 }
 
 function presentDim(value: unknown): number | undefined {
@@ -48,6 +71,11 @@ function firstString(...values: unknown[]): string | undefined {
     if (typeof value === 'string') return value
   }
   return undefined
+}
+
+function withReference(item: SolverItem, itemId: string): { itemReference?: string } {
+  const itemReference = firstString(item.itemReference, item.item_reference)
+  return itemReference === undefined || itemReference === itemId ? {} : { itemReference }
 }
 
 /**
@@ -73,7 +101,7 @@ export function uniquifyBoxIds(boxes: PackedBox[]): PackedBox[] {
   })
 }
 
-function placementItemId(placement: SolverPlacement, index: number, boxId: string): string {
+function placementItemId(placement: FlatPlacement, index: number, boxId: string): string {
   const itemId = firstString(
     placement.itemCode,
     placement.item_code,
@@ -89,24 +117,24 @@ function placementItemId(placement: SolverPlacement, index: number, boxId: strin
 }
 
 function outerDims(box: SolverBoxResult): Dims | undefined {
-  const w = presentDim(box.width) ?? presentDim(box.outer_width)
+  const width = presentDim(box.width) ?? presentDim(box.outer_width)
   const length = presentDim(box.length) ?? presentDim(box.outer_length)
   const depth = presentDim(box.depth) ?? presentDim(box.outer_depth)
-  if (w === undefined || length === undefined || depth === undefined) return undefined
-  return { w, h: depth, d: length }
+  if (width === undefined || length === undefined || depth === undefined) return undefined
+  return { width, depth, length }
 }
 
-function deriveDims(placements: SolverPlacement[], boxId: string): Dims {
-  let w = 0
-  let h = 0
-  let d = 0
+function deriveDims(placements: FlatPlacement[], boxId: string): Dims {
+  let width = 0
+  let depth = 0
+  let length = 0
   for (const p of placements) {
-    w = Math.max(w, p.x + p.width)
-    h = Math.max(h, p.y + p.depth)
-    d = Math.max(d, p.z + p.length)
+    width = Math.max(width, p.x + p.width)
+    depth = Math.max(depth, p.y + p.depth)
+    length = Math.max(length, p.z + p.length)
   }
   console.warn(`Derived dimensions for box "${boxId}" from placements`)
-  return { w, h, d }
+  return { width, depth, length }
 }
 
 /**
@@ -115,24 +143,28 @@ function deriveDims(placements: SolverPlacement[], boxId: string): Dims {
  *
  * FitSolver places each item at (x, y, z) with y as the vertical stacking axis
  * (item height = its depth field). Position is a direct pass-through; there is
- * no axis swap. Dimensions map as { w: width, h: depth, d: length }.
+ * no axis swap. Dimensions map as { width, depth, length } directly.
  *
  * `rotation` isn't present in the raw solver output at all, so it's left undefined here.
  */
 export function fromSolverOutput(raw: SolverOutput): PackingResult {
   const results = raw.results ?? []
-  const failed = raw.failed ?? []
+  const failed = (raw.failed ?? []).map(failedItemId)
 
   const boxes: PackedBox[] = results.map((box, boxIndex) => {
-    const placements = box.placements ?? []
+    const placements = (box.placements ?? []).map(flattenPlacement)
     const boxId =
       firstString(box.boxReference, box.box_reference) ?? `box-${boxIndex}`
     const dimensions = outerDims(box) ?? deriveDims(placements, boxId)
-    const items: PackedItem[] = placements.map((p, itemIndex) => ({
-      itemId: placementItemId(p, itemIndex, boxId),
-      dimensions: { w: p.width, h: p.depth, d: p.length },
-      position: { x: p.x, y: p.y, z: p.z },
-    }))
+    const items: PackedItem[] = placements.map((p, itemIndex) => {
+      const itemId = placementItemId(p, itemIndex, boxId)
+      return {
+        itemId,
+        ...withReference(p, itemId),
+        dimensions: { width: p.width, depth: p.depth, length: p.length },
+        position: { x: p.x, y: p.y, z: p.z },
+      }
+    })
     return { boxId, dimensions, items }
   })
 

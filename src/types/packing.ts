@@ -1,11 +1,14 @@
 export type Vec3 = { x: number; y: number; z: number }
-export type Dims = { w: number; h: number; d: number }
+export type Dims = { width: number; depth: number; length: number }
 
 export type PackedItem = {
   itemId: string
+  // items with the same ref get the same colour
+  itemReference?: string
   dimensions: Dims
   position: Vec3
-  rotation?: number
+  /** Axis order the item was rotated into, as sent by Portal (e.g. "XYZ", "ZXY"). */
+  rotation?: string
 }
 
 export type PackedBox = {
