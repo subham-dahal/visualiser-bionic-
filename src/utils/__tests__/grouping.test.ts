@@ -18,7 +18,7 @@ describe('groupItems', () => {
   it('puts a single item in its own group', () => {
     const kettle = item('Kettle', [250, 300, 250])
     expect(groupItems([kettle])).toEqual([
-      { itemId: 'Kettle', dimensions: kettle.dimensions, items: [kettle], itemIndices: [0] },
+      { itemId: 'Kettle', label: 'Kettle', dimensions: kettle.dimensions, items: [kettle], itemIndices: [0], colourIndex: 0 },
     ])
   })
 
@@ -75,13 +75,62 @@ describe('groupItems', () => {
 
   it('produces the groups the demo scene is designed to show', () => {
     const groups = groupItems(DEMO_RESULT.boxes[0]!.items)
-    expect(groups.map((g) => [g.itemId, g.items.length])).toEqual([
-      ['Shoebox', 5], // includes the rotated one
-      ['Shoebox', 1], // the larger one
+    expect(groups.map((g) => [g.label, g.items.length])).toEqual([
+      ['Shoebox 1, 2, 3, 4, 5', 5], // includes the rotated one
+      ['Shoebox 6', 1], // the larger one
       ['Kettle', 2],
       ['Mug', 3],
-      ['Book', 2],
+      ['Novel, Cookbook', 2], // same BOOK ref so one row
       ['Fragile Glassware', 1],
     ])
+  })
+
+  it('puts items with the same ref in one row with their names joined', () => {
+    const groups = groupItems([
+      { ...item('Shoebox 1', [300, 150, 200]), itemReference: 'Shoebox' },
+      { ...item('Kettle', [250, 300, 250]), itemReference: 'Kettle' },
+      { ...item('Shoebox 2', [200, 150, 300]), itemReference: 'Shoebox' },
+    ])
+    expect(groups.map((g) => [g.label, g.itemIndices, g.colourIndex])).toEqual([
+      ['Shoebox 1, 2', [0, 2], 0],
+      ['Kettle', [1], 1],
+    ])
+  })
+
+  it('lists the full names when they dont share a start', () => {
+    const groups = groupItems([
+      { ...item('Novel', [200, 40, 150]), itemReference: 'BOOK' },
+      { ...item('Big Cookbook', [200, 40, 150]), itemReference: 'BOOK' },
+    ])
+    expect(groups[0]?.label).toBe('Novel, Big Cookbook')
+  })
+
+  it('only lists each name once in the label', () => {
+    const groups = groupItems([item('Mug', [100, 120, 100]), item('Mug', [100, 120, 100])])
+    expect(groups[0]?.label).toBe('Mug')
+  })
+
+  it('keeps a different sized item with the same ref in its own row but the same colour', () => {
+    const groups = groupItems([
+      { ...item('Shoebox 1', [300, 150, 200]), itemReference: 'Shoebox' },
+      { ...item('Shoebox XL', [400, 150, 250]), itemReference: 'Shoebox' },
+    ])
+    expect(groups.map((g) => [g.label, g.colourIndex])).toEqual([
+      ['Shoebox 1', 0],
+      ['Shoebox XL', 0],
+    ])
+  })
+
+  it('gives different refs different colours', () => {
+    const groups = groupItems([
+      { ...item('Box', [100, 100, 100]), itemReference: 'A' },
+      { ...item('Box', [200, 200, 200]), itemReference: 'B' },
+    ])
+    expect(groups.map((g) => g.colourIndex)).toEqual([0, 1])
+  })
+
+  it('falls back to the itemId for colour when there is no ref', () => {
+    const groups = groupItems([item('Shoebox', [300, 150, 200]), item('Mug', [100, 120, 100]), item('Shoebox', [400, 150, 250])])
+    expect(groups.map((g) => g.colourIndex)).toEqual([0, 1, 0])
   })
 })
