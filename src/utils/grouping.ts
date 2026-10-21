@@ -14,7 +14,7 @@ export type ItemGroup = {
 }
 
 // use the itemId if there's no ref
-const refOf = (item: PackedItem) => item.itemReference ?? item.itemId
+export const refOf = (item: PackedItem) => item.itemReference ?? item.itemId
 
 const groupKey = (item: PackedItem) => {
   const { width, depth, length } = item.dimensions
