@@ -17,6 +17,7 @@ export async function fetchPackingResult(
 ): Promise<PackingResult> {
   const url = `${options?.apiBase ?? import.meta.env.VITE_PORTAL_API_BASE ?? ''}/api/orders/${orderId}/result`
   const timeoutMs = options?.timeoutMs ?? 8000
+  const timeoutMessage = `Request timed out after ${timeoutMs / 1000}s`
 
   const token = (() => {
     try {
@@ -37,7 +38,7 @@ export async function fetchPackingResult(
   const timeoutPromise = new Promise<never>((_, reject) => {
     timeoutId = setTimeout(() => {
       controller.abort()
-      reject(new ApiError('Request timed out after 8s'))
+      reject(new ApiError(timeoutMessage))
     }, timeoutMs)
   })
 
@@ -53,7 +54,7 @@ export async function fetchPackingResult(
     const res = await Promise.race([fetchPromise, timeoutPromise])
 
     if (!res.ok) {
-      let message = res.statusText
+      let message = res.statusText || `Request failed (${res.status}).`
       try {
         const data: unknown = await res.json()
         if (
@@ -75,7 +76,7 @@ export async function fetchPackingResult(
   } catch (err) {
     if (err instanceof ApiError) throw err
     if (controller.signal.aborted) {
-      throw new ApiError('Request timed out after 8s')
+      throw new ApiError(timeoutMessage)
     }
     throw err
   } finally {

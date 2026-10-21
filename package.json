@@ -34,9 +34,6 @@
     "url": "https://github.com/subham-dahal/visualiser-bionic-/issues"
   },
   "homepage": "https://github.com/subham-dahal/visualiser-bionic-#readme",
-  "dependencies": {
-    "requirements": "^4.0.2"
-  },
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18",

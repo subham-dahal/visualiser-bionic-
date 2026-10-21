@@ -1,65 +1,50 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { PackingResult } from '../types/packing'
 import { DEMO_RESULT } from '../demo/demoResult'
-import { validatePackingResult } from '../api/normalise'
+import { fetchPackingResult } from '../api/client'
+import { normalisePackingResult } from '../api/normalise'
 
-async function fetchResult(path: string) {
-  let token: string | null = null
-  try {
-    token = localStorage.getItem('fitportal.token')
-  } catch {
-    // storage can be unavailable (private mode, sandboxed embed) - fall back to no auth
-  }
-  const res = await fetch(path, {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-  })
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(data.error || `Request failed (${res.status}).`)
-  return (data.result ?? data) as PackingResult
-}
+type FetchState = { key: string; result: PackingResult | null; error: string }
 
-// Uses the host's result if given, otherwise fetches by orderId, otherwise falls back to the demo scene
-export function usePackingResult(resultProp: PackingResult | undefined, orderId: string | undefined, apiBase: string) {
-  const [result, setResult] = useState<PackingResult | null>(resultProp ?? null)
-  const [loading, setLoading] = useState(!resultProp && !!orderId)
-  const [error, setError] = useState('')
+// Uses the host's result if given, otherwise fetches by orderId, otherwise falls back to the demo scene.
+// Only the fetched response lives in state; everything else is derived during render, so a host result
+// or a cleared orderId takes effect immediately and never leaves `loading` stuck.
+export function usePackingResult(resultProp: PackingResult | Record<string, unknown> | undefined, orderId: string | undefined, apiBase: string) {
+  const [fetched, setFetched] = useState<FetchState | null>(null)
+  const shouldFetch = !resultProp && !!orderId
+  const key = `${apiBase}|${orderId ?? ''}`
 
   useEffect(() => {
-    if (resultProp) {
-      setResult(resultProp)
-      return
-    }
-    if (!orderId) {
-      setResult(DEMO_RESULT)
-      return
-    }
+    if (!shouldFetch || !orderId) return
     let cancelled = false
-    setLoading(true)
-    setError('')
-    fetchResult(`${apiBase}/api/orders/${orderId}/result`)
-      .then((data) => {
-        if (!cancelled) setResult(data)
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.message)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
+    fetchPackingResult(orderId, { apiBase }).then(
+      (result) => {
+        if (!cancelled) setFetched({ key, result, error: '' })
+      },
+      (err: unknown) => {
+        if (!cancelled) setFetched({ key, result: null, error: err instanceof Error ? err.message : String(err) })
+      },
+    )
     return () => {
       cancelled = true
     }
-  }, [resultProp, orderId, apiBase])
+  }, [shouldFetch, orderId, apiBase, key])
 
-  // dont show results with bad sizes or items outside the box
-  const checked = useMemo(() => {
-    if (!result) return { result, error: '' }
+  // Host data (e.g. FitPortal's `result` prop) goes through the same normaliser as fetched data,
+  // so Portal's { w, h, d } dimensions and raw solver output both render.
+  const host = useMemo(() => {
+    if (!resultProp) return null
     try {
-      return { result: validatePackingResult(result), error: '' }
+      return { result: normalisePackingResult(resultProp), error: '' }
     } catch (err) {
-      return { result: null, error: (err as Error).message }
+      return { result: null, error: err instanceof Error ? err.message : String(err) }
     }
-  }, [result])
+  }, [resultProp])
 
-  return { result: checked.result, loading, error: error || checked.error }
+  if (host) return { ...host, loading: false }
+  if (!orderId) return { result: DEMO_RESULT, loading: false, error: '' }
+
+  // Ignore a response that belongs to a previous orderId/apiBase
+  const current = fetched?.key === key ? fetched : null
+  return { result: current?.result ?? null, loading: current === null, error: current?.error ?? '' }
 }
