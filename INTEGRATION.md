@@ -1,17 +1,25 @@
 # FitVisualiser — Integration Guide for FitPortal
 
-## Prerequisite
-FitPortal must be on React 19. FitVisualiser is built 
-with React 19.2.8 and declares it as a peer dependency.
-Portal is currently on React 18.3.1 — upgrade required 
-before mounting this component.
+## Prerequisites
+FitPortal's web app needs these as dependencies. FitVisualiser declares them
+as peer dependencies and doesn't bundle them:
+
+| Package | Version |
+|---------|---------|
+| react, react-dom | >= 18 |
+| three | >= 0.150.0 |
 
 ## Install
-In the Portal repo, add to web/package.json dependencies:
+FitVisualiser installs straight from GitHub. In the Portal repo, add it to
+web/package.json dependencies, pointing at the branch you want:
 
-"@bionic/visualiser": "file:../../visualiser-bionic-"
+"@bionic/visualiser": "github:subham-dahal/visualiser-bionic-#<branch>"
 
 Then run: npm install
+
+npm runs this repo's `prepare` script on install, which builds `dist/`, so
+Portal always gets a fresh build. To pick up a new version, push it to that
+branch and run `npm install` in Portal again.
 
 ## Usage
 Two modes are supported:
@@ -27,21 +35,25 @@ import FitVisualiser from '@bionic/visualiser'
 ### Mode 2 — pass an orderId and let Visualiser fetch
 import FitVisualiser from '@bionic/visualiser'
 
-<FitVisualiser 
-  orderId={order._id} 
-  apiBase="http://localhost:4000" 
-/>
+<FitVisualiser orderId={order._id} />
+
+The component requests GET /api/orders/:id/result. With no `apiBase`, the
+request goes to the same origin as the page, so it uses Portal's own `/api`
+routes (and Portal's dev proxy). Pass `apiBase` to point it somewhere else,
+e.g. apiBase="http://localhost:4000".
 
 Auth token is read automatically from 
 localStorage['fitportal.token'] — the same key Portal 
 already uses. No extra setup needed.
 
 ## Where to mount in OrderDetail.jsx
-Replace the .visualizer-placeholder div (feature/ui-redesign 
-branch) with:
+Render it inside the 3D Visualization card once the order has a
+successful result, e.g. behind a "View in 3D" toggle:
 
-{result?.status === 'success' && (
-  <FitVisualiser result={order.result} />
+{result?.status === 'success' && show3D && (
+  <div className="visualizer-stage" id="fit-visualiser">
+    <FitVisualiser result={result} />
+  </div>
 )}
 
 ## Props
@@ -49,11 +61,13 @@ branch) with:
 |------|------|-------------|
 | result | PackingResult | Pre-fetched packing result. Takes priority over orderId. |
 | orderId | string | If no result given, Visualiser fetches it from Portal API. |
-| apiBase | string | Base URL for the Portal API. Default: VITE_PORTAL_API_BASE env var. |
+| apiBase | string | Base URL for the Portal API. Default: '' (same origin as the page). |
 
 ## Data shape
 Portal's GET /api/orders/:id/result already returns the 
 correct shape. No transformation needed on Portal's side.
+Dimensions can be sent as { width, depth, length } or Portal's
+{ w, h, d }; both are accepted.
 
 ## Build
 From the visualiser repo root:
