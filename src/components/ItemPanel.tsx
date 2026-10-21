@@ -46,10 +46,18 @@ function ItemPanel({ boxId, groups, selected, selectedItem, onSelect, unpacked }
             <dt>{selectedGroup.items.length > 1 ? 'Positions:' : 'Position:'}</dt>
             <dd>
               {selectedGroup.items.map((item, i) => (
-                <div key={i}>
-                  x {item.position.x} · y {item.position.y} · z {item.position.z} mm
-                  {item.rotation ? ` · rotation ${item.rotation}` : ''}
-                </div>
+                <button
+                  key={selectedGroup.itemIndices[i]}
+                  type="button"
+                  className={`item-unit${selectedItem === selectedGroup.itemIndices[i] ? ' is-selected' : ''}`}
+                  onClick={() => onSelect(selected, selectedGroup.itemIndices[i] ?? null)}
+                >
+                  <span className="item-unit__name">{selectedGroup.label}</span>
+                  <span className="item-unit__pos">
+                    x {item.position.x} · y {item.position.y} · z {item.position.z} mm
+                    {item.rotation ? ` · rotation ${item.rotation}` : ''}
+                  </span>
+                </button>
               ))}
             </dd>
           </dl>

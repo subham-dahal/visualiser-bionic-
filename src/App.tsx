@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import './App.css'
 import type { PackingResult } from './types/packing'
 import { usePackingResult } from './packing/usePackingResult'
@@ -33,7 +33,7 @@ function App({ result: resultProp, orderId, apiBase = '' }: AppProps) {
     setBoxIndex(0)
     setSelected(null)
     setSelectedItem(null)
-  }, [result])
+  }
 
   // useCallback so the 3D scene doesnt get rebuilt every render
   const handleSelect = useCallback((group: number | null, item: number | null) => {

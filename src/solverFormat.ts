@@ -73,6 +73,11 @@ function firstString(...values: unknown[]): string | undefined {
   return undefined
 }
 
+function withReference(item: SolverItem, itemId: string): { itemReference?: string } {
+  const itemReference = firstString(item.itemReference, item.item_reference)
+  return itemReference === undefined || itemReference === itemId ? {} : { itemReference }
+}
+
 /**
  * If two boxes share a boxId, later ones become `${id}-2`, `${id}-3`, …
  * so every boxId in a PackingResult is unique (App.tsx uses it as a React key).
@@ -151,12 +156,15 @@ export function fromSolverOutput(raw: SolverOutput): PackingResult {
     const boxId =
       firstString(box.boxReference, box.box_reference) ?? `box-${boxIndex}`
     const dimensions = outerDims(box) ?? deriveDims(placements, boxId)
-    const items: PackedItem[] = placements.map((p, itemIndex) => ({
-      itemId: placementItemId(p, itemIndex, boxId),
-      ...withReference(p),
-      dimensions: { width: p.width, depth: p.depth, length: p.length },
-      position: { x: p.x, y: p.y, z: p.z },
-    }))
+    const items: PackedItem[] = placements.map((p, itemIndex) => {
+      const itemId = placementItemId(p, itemIndex, boxId)
+      return {
+        itemId,
+        ...withReference(p, itemId),
+        dimensions: { width: p.width, depth: p.depth, length: p.length },
+        position: { x: p.x, y: p.y, z: p.z },
+      }
+    })
     return { boxId, dimensions, items }
   })
 
