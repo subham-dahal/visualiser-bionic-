@@ -198,3 +198,17 @@
   align-items: center;
   gap: 0.4rem;
 }
+
+/* Item reference shown under the name, so similar-looking items are easy to tell apart */
+.item-ref {
+  display: block;
+  margin-top: 0.1rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  color: #8b93a3;
+}
+
+.item-detail__ref {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}

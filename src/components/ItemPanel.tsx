@@ -1,5 +1,6 @@
 import type { ItemGroup } from '../utils/grouping'
 import { itemColourCss } from '../utils/colours'
+import { refOf } from '../utils/grouping'
 
 type ItemPanelProps = {
   readonly boxId: string
@@ -32,6 +33,10 @@ function ItemPanel({ boxId, groups, selected, selectedItem, onSelect, unpacked }
             {selectedGroup.items.length > 1 && ` × ${selectedGroup.items.length}`}
           </p>
           <dl className="item-detail__specs">
+            <dt>Reference:</dt>
+            <dd className="item-detail__ref">{refOf(selectedGroup.items[0]!)}</dd>
+            <dt>{selectedGroup.items.length > 1 ? 'Item codes:' : 'Item code:'}</dt>
+            <dd>{[...new Set(selectedGroup.items.map((item) => item.itemId))].join(', ')}</dd>
             <dt>Colour:</dt>
             <dd className="item-detail__colour">
               <span className="item-swatch" style={{ background: itemColourCss(selectedGroup.colourIndex) }} aria-hidden="true" />
@@ -52,7 +57,7 @@ function ItemPanel({ boxId, groups, selected, selectedItem, onSelect, unpacked }
                   className={`item-unit${selectedItem === selectedGroup.itemIndices[i] ? ' is-selected' : ''}`}
                   onClick={() => onSelect(selected, selectedGroup.itemIndices[i] ?? null)}
                 >
-                  <span className="item-unit__name">{selectedGroup.label}</span>
+                  <span className="item-unit__name">{item.itemId}</span>
                   <span className="item-unit__pos">
                     x {item.position.x} · y {item.position.y} · z {item.position.z} mm
                     {item.rotation ? ` · rotation ${item.rotation}` : ''}
@@ -88,6 +93,7 @@ function ItemPanel({ boxId, groups, selected, selectedItem, onSelect, unpacked }
               <span className="item-name">
                 {group.label}
                 {group.items.length > 1 && <span className="item-qty"> × {group.items.length}</span>}
+                {refOf(group.items[0]!) !== group.label && <span className="item-ref">{refOf(group.items[0]!)}</span>}
               </span>
               <span className="item-dims">
                 {group.dimensions.width} × {group.dimensions.depth} × {group.dimensions.length} mm

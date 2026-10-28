@@ -1,0 +1,43 @@
+/* Step-by-step packing playback bar, top-left of the canvas region.
+   Buttons reuse .camera-btn from camera.css. */
+
+.packing-steps {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: calc(100% - 13rem);
+}
+
+.packing-steps .camera-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.packing-steps__play,
+.packing-steps__all {
+  min-width: auto;
+  font-size: 0.75rem;
+}
+
+.packing-steps__label {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  color: #b5bcc9;
+  background: rgba(11, 13, 18, 0.7);
+  border-radius: 999px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+@media (max-width: 480px) {
+  .packing-steps {
+    max-width: calc(100% - 1.5rem);
+    top: 3.25rem;
+  }
+}
