@@ -40,7 +40,7 @@ function PackingSteps({ progress, controls }: PackingStepsProps) {
       >
         {playLabel}
       </button>
-      <button type="button" className="camera-btn" aria-label="Previous step" onClick={controls.prev} disabled={shown === 0}>
+      <button type="button" className="camera-btn" aria-label="Previous step" onClick={controls.prev} disabled={shown <= 1}>
         ‹
       </button>
       <button type="button" className="camera-btn" aria-label="Next step" onClick={controls.next} disabled={finished}>

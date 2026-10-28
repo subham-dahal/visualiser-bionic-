@@ -248,10 +248,11 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
 
     stepsRef.current = {
       play: () => {
-        if (placed === order.length) setPlaced(0)
-        playing = true
-        nextStepAt = performance.now()
-        emitProgress()
+        if (placed === order.length) {
+          setPlaced(0)
+          startFall(performance.now())
+        }
+        
       },
       // The item already falling still lands, so nothing is left hanging mid-air
       pause: () => {
@@ -266,7 +267,7 @@ function VisualiserCanvas({ box, groups, selectItemRef, onSelect }: VisualiserCa
       },
       prev: () => {
         playing = false
-        setPlaced(Math.max(placed - (falling ? 0 : 1), 0))
+        setPlaced(Math.max(placed - (falling ? 0 : 1), 1))
       },
       showAll: () => {
         playing = false
