@@ -4,7 +4,7 @@ import type { PackingResult } from '../types/packing'
 // Dimensions are in mm, same convention as a real PackingResult.
 // Mix of repeated items to show grouping: same ref + size share a row,
 // a rotated Shoebox still groups with the others, a larger Shoebox gets its own row.
-// Rows and colours go by itemReference, so the Novel and Cookbook (both BOOK) show as one row.
+// Rows and colours go by itemReference + size, so the Novel and Cookbook (both BOOK) show as one row.
 export const DEMO_RESULT: PackingResult = {
   status: 'success',
   source: 'mock',

@@ -110,14 +110,14 @@ describe('groupItems', () => {
     expect(groups[0]?.label).toBe('Mug')
   })
 
-  it('keeps a different sized item with the same ref in its own row but the same colour', () => {
+  it('keeps a different sized item with the same ref in its own row and colour', () => {
     const groups = groupItems([
       { ...item('Shoebox 1', [300, 150, 200]), itemReference: 'Shoebox' },
       { ...item('Shoebox XL', [400, 150, 250]), itemReference: 'Shoebox' },
     ])
     expect(groups.map((g) => [g.label, g.colourIndex])).toEqual([
       ['Shoebox 1', 0],
-      ['Shoebox XL', 0],
+      ['Shoebox XL', 1],
     ])
   })
 
@@ -129,8 +129,8 @@ describe('groupItems', () => {
     expect(groups.map((g) => g.colourIndex)).toEqual([0, 1])
   })
 
-  it('falls back to the itemId for colour when there is no ref', () => {
+  it('falls back to the itemId when there is no ref', () => {
     const groups = groupItems([item('Shoebox', [300, 150, 200]), item('Mug', [100, 120, 100]), item('Shoebox', [400, 150, 250])])
-    expect(groups.map((g) => g.colourIndex)).toEqual([0, 1, 0])
+    expect(groups.map((g) => g.colourIndex)).toEqual([0, 1, 2])
   })
 })

@@ -3,7 +3,7 @@ import type { PackedItem } from '../types/packing'
 // Items with the same item reference and size share a group (one row in the panel).
 // Dimensions are sorted so a rotated copy of the same item still matches.
 // The names get joined for the label, so "Shoebox 1" and "Shoebox 2" (ref "Shoebox") show as one row.
-// Colour comes from the ref too, so a different sized Shoebox still matches.
+// Each group gets its own colour, so a different sized Shoebox shows in a different colour.
 export type ItemGroup = {
   itemId: string
   label: string
@@ -39,20 +39,17 @@ const labelOf = (items: PackedItem[]) => {
 
 export const groupItems = (items: PackedItem[]) => {
   const groups = new Map<string, ItemGroup>()
-  const colours = new Map<string, number>()
   items.forEach((item, i) => {
     const key = groupKey(item)
     let group = groups.get(key)
     if (!group) {
-      const ref = refOf(item)
-      if (!colours.has(ref)) colours.set(ref, colours.size)
       group = {
         itemId: item.itemId,
         label: item.itemId,
         dimensions: item.dimensions,
         items: [],
         itemIndices: [],
-        colourIndex: colours.get(ref)!,
+        colourIndex: groups.size,
       }
       groups.set(key, group)
     }

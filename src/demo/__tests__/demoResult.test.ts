@@ -43,7 +43,7 @@ describe('DEMO_RESULT', () => {
     const groups = groupItems(box.items)
     const books = groups.find((g) => g.label === 'Novel, Cookbook')!
     expect(books.items).toHaveLength(2)
-    expect(new Set(groups.map((g) => g.colourIndex)).size).toBe(5)
+    expect(new Set(groups.map((g) => g.colourIndex)).size).toBe(groups.length)
   })
 
   it('passes through the normaliser unchanged', () => {
